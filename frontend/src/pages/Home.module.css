@@ -1,0 +1,222 @@
+.navbar {
+  background: #0C343D;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 56px;
+  border-bottom: 2px solid #1F869B;
+}
+
+.navbarLogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ccffcc;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.navbarLinks {
+  display: flex;
+  gap: 2rem;
+}
+
+.navbarLinks a {
+  color: #ccffcc;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.navbarLinks a:hover {
+  background: rgba(57, 255, 106, 0.15);
+  color: #1F869B;
+}
+
+.main {
+  padding: 2rem;
+  background: #fff;
+  min-height: calc(100vh - 56px);
+}
+
+.card {
+  background: #fff;
+  border: 0.5px solid #d0d0d0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 0.5px solid #e0e0e0;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: #0C343D;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 1.25rem 0 0.6rem;
+}
+
+.field {
+  margin-bottom: 0.85rem;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  border: 0.5px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #111;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: #1F869B;
+  box-shadow: 0 0 0 2px rgba(57, 255, 106, 0.2);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 0.5px solid #ccc;
+  background: #fff;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab.active {
+  background: #0C343D;
+  border-color: #135260;
+  color: #ccffcc;
+}
+
+.tab:hover:not(.active) {
+  border-color: #1F869B;
+  color: #0C343D;
+}
+
+.btnCalc {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 10px;
+  background: #0C343D;
+  color: #ccffcc;
+  border: 1.5px solid #1F869B;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnCalc:hover:not(:disabled) {
+  background: #07222a;
+}
+
+.btnCalc:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resultArea {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f0fff0;
+  border: 0.5px solid #1F869B;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #0C343D;
+}
+
+.resultTitle {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.resultDivider {
+  border: none;
+  border-top: 0.5px solid #c0e8c0;
+  margin: 0.85rem 0;
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 0.75rem;
+}
+
+.resultLabel {
+  font-size: 11px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.resultDesc {
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.resultValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0C343D;
+  margin-top: 2px;
+}
+
+.resultNote {
+  font-size: 11px;
+  color: #555;
+  margin-top: 0.5rem;
+}
+
+.errorArea {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff5f5;
+  border: 0.5px solid #e53935;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #c62828;
+}

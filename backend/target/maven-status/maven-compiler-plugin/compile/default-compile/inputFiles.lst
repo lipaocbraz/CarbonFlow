@@ -1,13 +1,13 @@
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\CarbonflowApplication.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\config\CorsConfig.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\config\EmissionFactorConfig.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\controller\EmissionController.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\controller\HealthController.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\exception\EmissionFactorNotFoundException.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\exception\ErrorResponse.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\exception\GlobalExceptionHandler.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\model\EmissionResult.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\model\OperationTypeInfo.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\model\TransactionRequest.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\model\TransactionType.java
-C:\Users\maria\OneDrive\Área de Trabalho\Projetos 3\CarbonFlow\backend\src\main\java\com\carbonflow\service\EmissionService.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\CarbonflowApplication.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\config\CorsConfig.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\config\EmissionFactorConfig.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\controller\EmissionController.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\controller\HealthController.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\exception\EmissionFactorNotFoundException.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\exception\ErrorResponse.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\exception\GlobalExceptionHandler.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\model\EmissionResult.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\model\OperationTypeInfo.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\model\TransactionRequest.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\model\TransactionType.java
+C:\Users\g\Documents\Faculdade\Projeto3\CarbonFlow\backend\src\main\java\com\carbonflow\service\EmissionService.java
