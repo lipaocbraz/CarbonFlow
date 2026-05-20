@@ -5,6 +5,8 @@ import com.carbonflow.model.EmissionResult;
 import com.carbonflow.model.OperationTypeInfo;
 import com.carbonflow.model.TransactionRequest;
 import org.springframework.stereotype.Service;
+import com.carbonflow.model.ComparisonRequest;
+import com.carbonflow.model.ComparisonResult;
 
 import java.util.List;
 import java.util.Map;
@@ -50,5 +52,50 @@ public class EmissionService {
 
     public List<OperationTypeInfo> getAllOperationTypes() {
         return operationTypes;
+    }
+
+    public ComparisonResult compare(ComparisonRequest request) {
+        String physicalOperationType = request.getPhysicalOperationType().toUpperCase();
+        String digitalOperationType = request.getDigitalOperationType().toUpperCase();
+
+        Double physicalFactor = emissionFactors.get(physicalOperationType);
+        if (physicalFactor == null) {
+            throw new EmissionFactorNotFoundException(physicalOperationType);
+        }
+
+        Double digitalFactor = emissionFactors.get(digitalOperationType);
+        if (digitalFactor == null) {
+            throw new EmissionFactorNotFoundException(digitalOperationType);
+        }
+
+        String physicalDescription = "";
+        for (OperationTypeInfo op : operationTypes) {
+            if (op.getOperationType().equals(physicalOperationType)) {
+                physicalDescription = op.getDescription();
+                break;
+            }
+        }
+
+        String digitalDescription = "";
+        for (OperationTypeInfo op : operationTypes) {
+            if (op.getOperationType().equals(digitalOperationType)) {
+                digitalDescription = op.getDescription();
+                break;
+            }
+        }
+
+        double physicalEmissions = physicalFactor * request.getPhysicalQuantity();
+        double digitalEmissions = digitalFactor * request.getDigitalQuantity();
+
+        return new ComparisonResult(
+                physicalOperationType,
+                physicalDescription,
+                request.getPhysicalQuantity(),
+                physicalEmissions,
+                digitalOperationType,
+                digitalDescription,
+                request.getDigitalQuantity(),
+                digitalEmissions
+        );
     }
 }

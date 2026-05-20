@@ -7,6 +7,8 @@ import com.carbonflow.service.EmissionService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.carbonflow.model.ComparisonRequest;
+import com.carbonflow.model.ComparisonResult;
 
 import java.util.List;
 
@@ -31,5 +33,11 @@ public class EmissionController {
     public ResponseEntity<List<OperationTypeInfo>> getOperationTypes() {
         List<OperationTypeInfo> types = emissionService.getAllOperationTypes();
         return ResponseEntity.ok(types);
+    }
+
+    @PostMapping("/compare")
+    public ResponseEntity<ComparisonResult> compare(@Valid @RequestBody ComparisonRequest request) {
+        ComparisonResult result = emissionService.compare(request);
+        return ResponseEntity.ok(result);
     }
 }
