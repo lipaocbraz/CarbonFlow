@@ -33,6 +33,14 @@ export default function Home() {
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(false)
 
+  const [operacaoFisicaComp, setOperacaoFisicaComp] = useState('')
+  const [qtdFisicaComp, setQtdFisicaComp] = useState(1)
+  const [operacaoDigitalComp, setOperacaoDigitalComp] = useState('')
+  const [qtdDigitalComp, setQtdDigitalComp] = useState(1)
+  const [resultadoComp, setResultadoComp] = useState(null)
+  const [erroComp, setErroComp] = useState('')
+  const [carregandoComp, setCarregandoComp] = useState(false)
+
   const operationType = tipoTransacao === 'fisico' ? operacaoFisica : operacaoDigital
   const transactionType = tipoTransacao === 'fisico' ? 'FISICO' : 'DIGITAL'
 
@@ -63,6 +71,31 @@ export default function Home() {
     setTipoTransacao(tipo)
     setResultado(null)
     setErro('')
+  }
+
+  async function comparar() {
+    setErroComp('')
+    setResultadoComp(null)
+
+    if (!operacaoFisicaComp) { setErroComp('Selecione o tipo de operação física.'); return }
+    if (!qtdFisicaComp || qtdFisicaComp < 1) { setErroComp('Informe uma quantidade física válida (mínimo 1).'); return }
+    if (!operacaoDigitalComp) { setErroComp('Selecione o tipo de operação digital.'); return }
+    if (!qtdDigitalComp || qtdDigitalComp < 1) { setErroComp('Informe uma quantidade digital válida (mínimo 1).'); return }
+
+    setCarregandoComp(true)
+    try {
+      const { data } = await api.post('/emissions/compare', {
+        physicalOperationType: operacaoFisicaComp,
+        physicalQuantity: Number(qtdFisicaComp),
+        digitalOperationType: operacaoDigitalComp,
+        digitalQuantity: Number(qtdDigitalComp),
+      })
+      setResultadoComp(data)
+    } catch (e) {
+      setErroComp(e.response?.data?.message || 'Não foi possível conectar ao servidor. Verifique se o backend está em execução.')
+    } finally {
+      setCarregandoComp(false)
+    }
   }
 
   return (
@@ -219,6 +252,103 @@ export default function Home() {
 
           {erro && (
             <div className={styles.errorArea}>{erro}</div>
+          )}
+        </div>
+
+        <div className={styles.compCard}>
+          <div className={styles.cardTitle}>Comparador de emissões: físico vs. digital</div>
+
+          <div className={styles.compCols}>
+            <div>
+              <div className={styles.compColLabel}>Físico</div>
+              <div className={styles.field}>
+                <label htmlFor="comp-op-fisica">Tipo de operação física</label>
+                <select
+                  id="comp-op-fisica"
+                  value={operacaoFisicaComp}
+                  onChange={e => setOperacaoFisicaComp(e.target.value)}
+                >
+                  <option value="">Selecione...</option>
+                  {OPERACOES_FISICAS.map(op => (
+                    <option key={op.value} value={op.value}>{op.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="comp-qtd-fisica">Quantidade</label>
+                <input
+                  id="comp-qtd-fisica"
+                  type="number"
+                  min="1"
+                  value={qtdFisicaComp}
+                  onChange={e => setQtdFisicaComp(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className={styles.compColLabel}>Digital</div>
+              <div className={styles.field}>
+                <label htmlFor="comp-op-digital">Tipo de operação digital</label>
+                <select
+                  id="comp-op-digital"
+                  value={operacaoDigitalComp}
+                  onChange={e => setOperacaoDigitalComp(e.target.value)}
+                >
+                  <option value="">Selecione...</option>
+                  {OPERACOES_DIGITAIS.map(op => (
+                    <option key={op.value} value={op.value}>{op.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="comp-qtd-digital">Quantidade</label>
+                <input
+                  id="comp-qtd-digital"
+                  type="number"
+                  min="1"
+                  value={qtdDigitalComp}
+                  onChange={e => setQtdDigitalComp(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
+            className={styles.btnCalc}
+            onClick={comparar}
+            disabled={carregandoComp}
+          >
+            {carregandoComp ? 'Comparando...' : 'Comparar emissões'}
+          </button>
+
+          {resultadoComp && (
+            <div className={styles.resultArea}>
+              <div className={styles.resultTitle}>Resultado da comparação</div>
+              <hr className={styles.resultDivider} />
+              <div className={styles.compResultGrid}>
+                <div>
+                  <div className={styles.resultLabel}>Emissões físicas</div>
+                  <div className={styles.resultDesc}>{resultadoComp.physicalDescription}</div>
+                  <div className={styles.resultDesc}>{resultadoComp.physicalQuantity} unidade(s)</div>
+                  <div className={styles.resultValue}>{formatarEmissoes(resultadoComp.physicalEmissionsKgCO2e)}</div>
+                </div>
+                <div>
+                  <div className={styles.resultLabel}>Emissões digitais</div>
+                  <div className={styles.resultDesc}>{resultadoComp.digitalDescription}</div>
+                  <div className={styles.resultDesc}>{resultadoComp.digitalQuantity} unidade(s)</div>
+                  <div className={styles.resultValue}>{formatarEmissoes(resultadoComp.digitalEmissionsKgCO2e)}</div>
+                </div>
+              </div>
+              <hr className={styles.resultDivider} />
+              <div className={styles.resultLabel}>Carbono evitado</div>
+              <div className={styles.avoidedValue}>{formatarEmissoes(resultadoComp.avoidedCarbonKgCO2e)}</div>
+              <div className={styles.resultNote}>{resultadoComp.avoidedCarbonKgCO2e.toFixed(8)} kg CO₂e (valor exato)</div>
+            </div>
+          )}
+
+          {erroComp && (
+            <div className={styles.errorArea}>{erroComp}</div>
           )}
         </div>
       </div>
