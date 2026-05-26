@@ -22,6 +22,57 @@ function formatarEmissoes(kgCO2e) {
   return (kgCO2e * 1000000).toFixed(2) + ' mg CO₂e'
 }
 
+function calcularNivelImpacto(kg) {
+  if (kg < 0.1) {
+    return {
+      nivel: 'Baixo',
+      cor: '#4ade80',
+      percentual: Math.max((kg / 0.1) * 30, 4),
+      mensagem: 'Esta operação tem impacto ambiental muito baixo. Equivale a atividades cotidianas de mínimo consumo energético.',
+    }
+  }
+  if (kg < 1) {
+    return {
+      nivel: 'Médio',
+      cor: '#fbbf24',
+      percentual: 30 + ((kg - 0.1) / 0.9) * 40,
+      mensagem: 'Esta operação tem impacto ambiental moderado. Pequenas mudanças de hábito ou a escolha por alternativas digitais podem ajudar a reduzir essas emissões.',
+    }
+  }
+  return {
+    nivel: 'Alto',
+    cor: '#f87171',
+    percentual: Math.min(70 + ((kg - 1) / 9) * 30, 100),
+    mensagem: 'Esta operação tem impacto ambiental significativo. Considere alternativas digitais ou compensações de carbono para reduzir sua pegada ambiental.',
+  }
+}
+
+function gerarComparacoes(kg) {
+  const kmCarro = kg / 0.21
+  const cargasSmartphone = kg / 0.005
+  const diasArvore = (kg / 21) * 365
+
+  return [
+    {
+      icone: '🚗',
+      valor: kmCarro < 0.1 ? `${(kmCarro * 1000).toFixed(0)} m` : `${kmCarro.toFixed(2)} km`,
+      descricao: 'rodados de carro',
+    },
+    {
+      icone: '📱',
+      valor: cargasSmartphone < 1
+        ? `${(cargasSmartphone * 100).toFixed(0)}% de uma carga`
+        : `${cargasSmartphone.toFixed(1)} cargas`,
+      descricao: 'de smartphone carregado',
+    },
+    {
+      icone: '🌳',
+      valor: diasArvore < 1 ? `${(diasArvore * 24).toFixed(1)} h` : `${diasArvore.toFixed(1)} dias`,
+      descricao: 'de absorção de uma árvore',
+    },
+  ]
+}
+
 export default function Home() {
   const [tipoProduto, setTipoProduto] = useState('')
   const [quantidade, setQuantidade] = useState(1)
@@ -47,11 +98,9 @@ export default function Home() {
   async function calcular() {
     setErro('')
     setResultado(null)
-
     if (!tipoProduto) { setErro('Selecione o tipo de produto.'); return }
     if (!quantidade || quantidade < 1) { setErro('Informe uma quantidade válida (mínimo 1).'); return }
     if (!operationType) { setErro('Selecione o tipo de operação de entrega / transação.'); return }
-
     setCarregando(true)
     try {
       const { data } = await api.post('/emissions/calculate', {
@@ -76,12 +125,10 @@ export default function Home() {
   async function comparar() {
     setErroComp('')
     setResultadoComp(null)
-
     if (!operacaoFisicaComp) { setErroComp('Selecione o tipo de operação física.'); return }
     if (!qtdFisicaComp || qtdFisicaComp < 1) { setErroComp('Informe uma quantidade física válida (mínimo 1).'); return }
     if (!operacaoDigitalComp) { setErroComp('Selecione o tipo de operação digital.'); return }
     if (!qtdDigitalComp || qtdDigitalComp < 1) { setErroComp('Informe uma quantidade digital válida (mínimo 1).'); return }
-
     setCarregandoComp(true)
     try {
       const { data } = await api.post('/emissions/compare', {
@@ -102,12 +149,7 @@ export default function Home() {
     <>
       <nav className={styles.navbar}>
         <div className={styles.navbarLogo}>
-          <img
-            src="/images/logo.png"
-            alt="CarbonFlow"
-            style={{ height: 32 }}
-            onError={e => { e.target.style.display = 'none' }}
-          />
+          <img src="/images/logo.png" alt="CarbonFlow" style={{ height: 32 }} onError={e => { e.target.style.display = 'none' }} />
           CarbonFlow
         </div>
         <div className={styles.navbarLinks}>
@@ -125,11 +167,7 @@ export default function Home() {
 
           <div className={styles.field}>
             <label htmlFor="tipo-produto">Tipo de produto</label>
-            <select
-              id="tipo-produto"
-              value={tipoProduto}
-              onChange={e => setTipoProduto(e.target.value)}
-            >
+            <select id="tipo-produto" value={tipoProduto} onChange={e => setTipoProduto(e.target.value)}>
               <option value="">Selecione...</option>
               <option value="Livro">Livro</option>
               <option value="Eletrônico">Eletrônico</option>
@@ -142,57 +180,27 @@ export default function Home() {
           <div className={styles.row}>
             <div className={styles.field}>
               <label htmlFor="quantidade">Quantidade</label>
-              <input
-                id="quantidade"
-                type="number"
-                min="1"
-                value={quantidade}
-                onChange={e => setQuantidade(e.target.value)}
-              />
+              <input id="quantidade" type="number" min="1" value={quantidade} onChange={e => setQuantidade(e.target.value)} />
             </div>
             <div className={styles.field}>
               <label htmlFor="peso">Peso estimado (kg)</label>
-              <input
-                id="peso"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="ex: 0.5"
-                value={peso}
-                onChange={e => setPeso(e.target.value)}
-              />
+              <input id="peso" type="number" min="0" step="0.01" placeholder="ex: 0.5" value={peso} onChange={e => setPeso(e.target.value)} />
             </div>
           </div>
 
           <div className={styles.sectionLabel}>Meio de entrega / transação</div>
 
           <div className={styles.tabs}>
-            <div
-              className={`${styles.tab} ${tipoTransacao === 'fisico' ? styles.active : ''}`}
-              onClick={() => trocarTransacao('fisico')}
-            >
-              Físico
-            </div>
-            <div
-              className={`${styles.tab} ${tipoTransacao === 'digital' ? styles.active : ''}`}
-              onClick={() => trocarTransacao('digital')}
-            >
-              Digital
-            </div>
+            <div className={`${styles.tab} ${tipoTransacao === 'fisico' ? styles.active : ''}`} onClick={() => trocarTransacao('fisico')}>Físico</div>
+            <div className={`${styles.tab} ${tipoTransacao === 'digital' ? styles.active : ''}`} onClick={() => trocarTransacao('digital')}>Digital</div>
           </div>
 
           {tipoTransacao === 'fisico' && (
             <div className={styles.field}>
               <label htmlFor="operacao-fisica">Tipo de operação física</label>
-              <select
-                id="operacao-fisica"
-                value={operacaoFisica}
-                onChange={e => setOperacaoFisica(e.target.value)}
-              >
+              <select id="operacao-fisica" value={operacaoFisica} onChange={e => setOperacaoFisica(e.target.value)}>
                 <option value="">Selecione...</option>
-                {OPERACOES_FISICAS.map(op => (
-                  <option key={op.value} value={op.value}>{op.label}</option>
-                ))}
+                {OPERACOES_FISICAS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
               </select>
             </div>
           )}
@@ -200,59 +208,91 @@ export default function Home() {
           {tipoTransacao === 'digital' && (
             <div className={styles.field}>
               <label htmlFor="operacao-digital">Tipo de operação digital</label>
-              <select
-                id="operacao-digital"
-                value={operacaoDigital}
-                onChange={e => setOperacaoDigital(e.target.value)}
-              >
+              <select id="operacao-digital" value={operacaoDigital} onChange={e => setOperacaoDigital(e.target.value)}>
                 <option value="">Selecione...</option>
-                {OPERACOES_DIGITAIS.map(op => (
-                  <option key={op.value} value={op.value}>{op.label}</option>
-                ))}
+                {OPERACOES_DIGITAIS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
               </select>
             </div>
           )}
 
-          <button
-            className={styles.btnCalc}
-            onClick={calcular}
-            disabled={carregando}
-          >
+          <button className={styles.btnCalc} onClick={calcular} disabled={carregando}>
             {carregando ? 'Calculando...' : 'Calcular emissões'}
           </button>
 
-          {resultado && (
-            <div className={styles.resultArea}>
-              <div className={styles.resultTitle}>Resultado do cálculo</div>
-              <hr className={styles.resultDivider} />
-              <div className={styles.resultGrid}>
-                <div>
-                  <div className={styles.resultLabel}>Produto</div>
-                  <div className={styles.resultDesc}>{tipoProduto}</div>
+          {resultado && (() => {
+            const impacto = calcularNivelImpacto(resultado.emissionsKgCO2e)
+            const comparacoes = gerarComparacoes(resultado.emissionsKgCO2e)
+            return (
+              <div className={styles.resultArea}>
+                <div className={styles.resultHeader}>
+                  <div className={styles.resultTitle}>Resultado do cálculo</div>
+                  <span className={styles.impactBadge} style={{ color: impacto.cor, borderColor: impacto.cor }}>
+                    Impacto {impacto.nivel}
+                  </span>
                 </div>
-                <div>
-                  <div className={styles.resultLabel}>Peso estimado</div>
-                  <div className={styles.resultDesc}>{peso ? `${peso} kg` : '—'}</div>
+
+                <hr className={styles.resultDivider} />
+
+                <div className={styles.resultGrid}>
+                  <div>
+                    <div className={styles.resultLabel}>Produto</div>
+                    <div className={styles.resultDesc}>{tipoProduto}</div>
+                  </div>
+                  <div>
+                    <div className={styles.resultLabel}>Peso estimado</div>
+                    <div className={styles.resultDesc}>{peso ? `${peso} kg` : '—'}</div>
+                  </div>
+                  <div>
+                    <div className={styles.resultLabel}>Operação</div>
+                    <div className={styles.resultDesc}>{resultado.description}</div>
+                  </div>
+                  <div>
+                    <div className={styles.resultLabel}>Quantidade</div>
+                    <div className={styles.resultDesc}>{resultado.quantity} unidade(s)</div>
+                  </div>
                 </div>
-                <div>
-                  <div className={styles.resultLabel}>Operação</div>
-                  <div className={styles.resultDesc}>{resultado.description}</div>
+
+                <hr className={styles.resultDivider} />
+
+                <div className={styles.resultLabel}>Emissões totais estimadas</div>
+                <div className={styles.resultValue} style={{ color: impacto.cor }}>
+                  {formatarEmissoes(resultado.emissionsKgCO2e)}
                 </div>
-                <div>
-                  <div className={styles.resultLabel}>Quantidade</div>
-                  <div className={styles.resultDesc}>{resultado.quantity} unidade(s)</div>
+                <div className={styles.resultNote}>
+                  Referência técnica: {resultado.emissionsKgCO2e.toFixed(8)} kg CO₂e
+                </div>
+
+                <div className={styles.impactBarWrapper}>
+                  <div className={styles.impactBarTrack}>
+                    <div className={styles.impactBarFill} style={{ width: `${impacto.percentual}%`, background: impacto.cor }} />
+                  </div>
+                  <div className={styles.impactBarLabels}>
+                    <span>Baixo</span><span>Médio</span><span>Alto</span>
+                  </div>
+                </div>
+
+                <hr className={styles.resultDivider} />
+
+                <div className={styles.mensagemBox}>
+                  <span className={styles.mensagemIcone}>💡</span>
+                  <p className={styles.mensagemTexto}>{impacto.mensagem}</p>
+                </div>
+
+                <div className={styles.comparacoesLabel}>Isso equivale a...</div>
+                <div className={styles.comparacoesGrid}>
+                  {comparacoes.map((c, i) => (
+                    <div key={i} className={styles.comparacaoCard}>
+                      <span className={styles.comparacaoIcone}>{c.icone}</span>
+                      <div className={styles.comparacaoValor}>{c.valor}</div>
+                      <div className={styles.comparacaoDesc}>{c.descricao}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <hr className={styles.resultDivider} />
-              <div className={styles.resultLabel}>Emissões totais estimadas</div>
-              <div className={styles.resultValue}>{formatarEmissoes(resultado.emissionsKgCO2e)}</div>
-              <div className={styles.resultNote}>{resultado.emissionsKgCO2e.toFixed(8)} kg CO₂e (valor exato)</div>
-            </div>
-          )}
+            )
+          })()}
 
-          {erro && (
-            <div className={styles.errorArea}>{erro}</div>
-          )}
+          {erro && <div className={styles.errorArea}>{erro}</div>}
         </div>
 
         <div className={styles.compCard}>
@@ -263,62 +303,33 @@ export default function Home() {
               <div className={styles.compColLabel}>Físico</div>
               <div className={styles.field}>
                 <label htmlFor="comp-op-fisica">Tipo de operação física</label>
-                <select
-                  id="comp-op-fisica"
-                  value={operacaoFisicaComp}
-                  onChange={e => setOperacaoFisicaComp(e.target.value)}
-                >
+                <select id="comp-op-fisica" value={operacaoFisicaComp} onChange={e => setOperacaoFisicaComp(e.target.value)}>
                   <option value="">Selecione...</option>
-                  {OPERACOES_FISICAS.map(op => (
-                    <option key={op.value} value={op.value}>{op.label}</option>
-                  ))}
+                  {OPERACOES_FISICAS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
                 </select>
               </div>
               <div className={styles.field}>
                 <label htmlFor="comp-qtd-fisica">Quantidade</label>
-                <input
-                  id="comp-qtd-fisica"
-                  type="number"
-                  min="1"
-                  value={qtdFisicaComp}
-                  onChange={e => setQtdFisicaComp(e.target.value)}
-                />
+                <input id="comp-qtd-fisica" type="number" min="1" value={qtdFisicaComp} onChange={e => setQtdFisicaComp(e.target.value)} />
               </div>
             </div>
-
             <div>
               <div className={styles.compColLabel}>Digital</div>
               <div className={styles.field}>
                 <label htmlFor="comp-op-digital">Tipo de operação digital</label>
-                <select
-                  id="comp-op-digital"
-                  value={operacaoDigitalComp}
-                  onChange={e => setOperacaoDigitalComp(e.target.value)}
-                >
+                <select id="comp-op-digital" value={operacaoDigitalComp} onChange={e => setOperacaoDigitalComp(e.target.value)}>
                   <option value="">Selecione...</option>
-                  {OPERACOES_DIGITAIS.map(op => (
-                    <option key={op.value} value={op.value}>{op.label}</option>
-                  ))}
+                  {OPERACOES_DIGITAIS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
                 </select>
               </div>
               <div className={styles.field}>
                 <label htmlFor="comp-qtd-digital">Quantidade</label>
-                <input
-                  id="comp-qtd-digital"
-                  type="number"
-                  min="1"
-                  value={qtdDigitalComp}
-                  onChange={e => setQtdDigitalComp(e.target.value)}
-                />
+                <input id="comp-qtd-digital" type="number" min="1" value={qtdDigitalComp} onChange={e => setQtdDigitalComp(e.target.value)} />
               </div>
             </div>
           </div>
 
-          <button
-            className={styles.btnCalc}
-            onClick={comparar}
-            disabled={carregandoComp}
-          >
+          <button className={styles.btnCalc} onClick={comparar} disabled={carregandoComp}>
             {carregandoComp ? 'Comparando...' : 'Comparar emissões'}
           </button>
 
@@ -347,9 +358,7 @@ export default function Home() {
             </div>
           )}
 
-          {erroComp && (
-            <div className={styles.errorArea}>{erroComp}</div>
-          )}
+          {erroComp && <div className={styles.errorArea}>{erroComp}</div>}
         </div>
       </div>
     </>
