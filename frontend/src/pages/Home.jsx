@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
 import styles from './Home.module.css'
+import Navbar from '../components/Navbar'
 
 const OPERACOES_FISICAS = [
   { value: 'VOUCHER_PAPEL', label: 'Voucher em papel' },
@@ -112,6 +113,7 @@ export default function Home() {
         quantity: Number(quantidade),
       })
       setResultado(data)
+      sessionStorage.setItem('cf_h1', JSON.stringify({ resultado: data, tipoProduto, peso }))
     } catch (e) {
       setErro(e.response?.data?.message || 'Não foi possível conectar ao servidor. Verifique se o backend está em execução.')
     } finally {
@@ -141,6 +143,7 @@ export default function Home() {
         digitalQuantity: Number(qtdDigitalComp),
       })
       setResultadoComp(data)
+      sessionStorage.setItem('cf_h2', JSON.stringify(data))
     } catch (e) {
       setErroComp(e.response?.data?.message || 'Não foi possível conectar ao servidor. Verifique se o backend está em execução.')
     } finally {
@@ -150,22 +153,7 @@ export default function Home() {
 
   return (
     <>
-      <nav className={styles.navbar}>
-        <div className={styles.navbarLogo}>
-          <img
-            src="/images/logo.png"
-            alt="CarbonFlow"
-            style={{ height: 32 }}
-            onError={e => { e.target.style.display = 'none' }}
-          />
-          CarbonFlow
-        </div>
-        <div className={styles.navbarLinks}>
-          <a href="#">Resultados</a>
-          <a href="#">Suporte</a>
-          <a href="#">Config</a>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className={styles.main}>
         <div className={styles.layout}>
@@ -375,7 +363,11 @@ export default function Home() {
               </>
             ) : (
               <>
-                <Link to="/tabela-dados" className={styles.resultadosTitleLink}>
+                <Link
+                  to="/tabela-dados"
+                  state={{ resultado, resultadoComp, tipoProduto, peso }}
+                  className={styles.resultadosTitleLink}
+                >
                   Resultados
                 </Link>
 
