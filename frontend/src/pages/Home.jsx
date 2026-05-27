@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../services/api'
 import styles from './Home.module.css'
 
@@ -51,7 +52,6 @@ function gerarComparacoes(kg) {
   const kmCarro = kg / 0.21
   const cargasSmartphone = kg / 0.005
   const diasArvore = (kg / 21) * 365
-
   return [
     {
       icone: '🚗',
@@ -92,8 +92,11 @@ export default function Home() {
   const [erroComp, setErroComp] = useState('')
   const [carregandoComp, setCarregandoComp] = useState(false)
 
+  const [formAberto, setFormAberto] = useState(false)
+
   const operationType = tipoTransacao === 'fisico' ? operacaoFisica : operacaoDigital
   const transactionType = tipoTransacao === 'fisico' ? 'FISICO' : 'DIGITAL'
+  const temResultado = resultado !== null || resultadoComp !== null
 
   async function calcular() {
     setErro('')
@@ -149,7 +152,12 @@ export default function Home() {
     <>
       <nav className={styles.navbar}>
         <div className={styles.navbarLogo}>
-          <img src="/images/logo.png" alt="CarbonFlow" style={{ height: 32 }} onError={e => { e.target.style.display = 'none' }} />
+          <img
+            src="/images/logo.png"
+            alt="CarbonFlow"
+            style={{ height: 32 }}
+            onError={e => { e.target.style.display = 'none' }}
+          />
           CarbonFlow
         </div>
         <div className={styles.navbarLinks}>
@@ -160,205 +168,318 @@ export default function Home() {
       </nav>
 
       <div className={styles.main}>
-        <div className={styles.card}>
-          <div className={styles.cardTitle}>Calculadora de impacto ambiental por operação</div>
+        <div className={styles.layout}>
 
-          <div className={styles.sectionLabel}>Dados do produto</div>
+          {/* COLUNA ESQUERDA */}
+          <div className={styles.leftCol}>
+            <button
+              className={styles.btnAdicionar}
+              onClick={() => setFormAberto(v => !v)}
+            >
+              {formAberto ? '▲' : '▼'} Adicionar Dados
+            </button>
 
-          <div className={styles.field}>
-            <label htmlFor="tipo-produto">Tipo de produto</label>
-            <select id="tipo-produto" value={tipoProduto} onChange={e => setTipoProduto(e.target.value)}>
-              <option value="">Selecione...</option>
-              <option value="Livro">Livro</option>
-              <option value="Eletrônico">Eletrônico</option>
-              <option value="Roupa">Roupa</option>
-              <option value="Alimento">Alimento</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
+            {formAberto && (
+              <div className={styles.formContent}>
+                <div className={styles.card}>
+                  <div className={styles.cardTitle}>Calculadora de impacto ambiental por operação</div>
 
-          <div className={styles.row}>
-            <div className={styles.field}>
-              <label htmlFor="quantidade">Quantidade</label>
-              <input id="quantidade" type="number" min="1" value={quantidade} onChange={e => setQuantidade(e.target.value)} />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="peso">Peso estimado (kg)</label>
-              <input id="peso" type="number" min="0" step="0.01" placeholder="ex: 0.5" value={peso} onChange={e => setPeso(e.target.value)} />
-            </div>
-          </div>
+                  <div className={styles.sectionLabel}>Dados do produto</div>
 
-          <div className={styles.sectionLabel}>Meio de entrega / transação</div>
-
-          <div className={styles.tabs}>
-            <div className={`${styles.tab} ${tipoTransacao === 'fisico' ? styles.active : ''}`} onClick={() => trocarTransacao('fisico')}>Físico</div>
-            <div className={`${styles.tab} ${tipoTransacao === 'digital' ? styles.active : ''}`} onClick={() => trocarTransacao('digital')}>Digital</div>
-          </div>
-
-          {tipoTransacao === 'fisico' && (
-            <div className={styles.field}>
-              <label htmlFor="operacao-fisica">Tipo de operação física</label>
-              <select id="operacao-fisica" value={operacaoFisica} onChange={e => setOperacaoFisica(e.target.value)}>
-                <option value="">Selecione...</option>
-                {OPERACOES_FISICAS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
-              </select>
-            </div>
-          )}
-
-          {tipoTransacao === 'digital' && (
-            <div className={styles.field}>
-              <label htmlFor="operacao-digital">Tipo de operação digital</label>
-              <select id="operacao-digital" value={operacaoDigital} onChange={e => setOperacaoDigital(e.target.value)}>
-                <option value="">Selecione...</option>
-                {OPERACOES_DIGITAIS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
-              </select>
-            </div>
-          )}
-
-          <button className={styles.btnCalc} onClick={calcular} disabled={carregando}>
-            {carregando ? 'Calculando...' : 'Calcular emissões'}
-          </button>
-
-          {resultado && (() => {
-            const impacto = calcularNivelImpacto(resultado.emissionsKgCO2e)
-            const comparacoes = gerarComparacoes(resultado.emissionsKgCO2e)
-            return (
-              <div className={styles.resultArea}>
-                <div className={styles.resultHeader}>
-                  <div className={styles.resultTitle}>Resultado do cálculo</div>
-                  <span className={styles.impactBadge} style={{ color: impacto.cor, borderColor: impacto.cor }}>
-                    Impacto {impacto.nivel}
-                  </span>
-                </div>
-
-                <hr className={styles.resultDivider} />
-
-                <div className={styles.resultGrid}>
-                  <div>
-                    <div className={styles.resultLabel}>Produto</div>
-                    <div className={styles.resultDesc}>{tipoProduto}</div>
+                  <div className={styles.field}>
+                    <label htmlFor="tipo-produto">Tipo de produto</label>
+                    <select
+                      id="tipo-produto"
+                      value={tipoProduto}
+                      onChange={e => setTipoProduto(e.target.value)}
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="Livro">Livro</option>
+                      <option value="Eletrônico">Eletrônico</option>
+                      <option value="Roupa">Roupa</option>
+                      <option value="Alimento">Alimento</option>
+                      <option value="Outro">Outro</option>
+                    </select>
                   </div>
-                  <div>
-                    <div className={styles.resultLabel}>Peso estimado</div>
-                    <div className={styles.resultDesc}>{peso ? `${peso} kg` : '—'}</div>
-                  </div>
-                  <div>
-                    <div className={styles.resultLabel}>Operação</div>
-                    <div className={styles.resultDesc}>{resultado.description}</div>
-                  </div>
-                  <div>
-                    <div className={styles.resultLabel}>Quantidade</div>
-                    <div className={styles.resultDesc}>{resultado.quantity} unidade(s)</div>
-                  </div>
-                </div>
 
-                <hr className={styles.resultDivider} />
-
-                <div className={styles.resultLabel}>Emissões totais estimadas</div>
-                <div className={styles.resultValue} style={{ color: impacto.cor }}>
-                  {formatarEmissoes(resultado.emissionsKgCO2e)}
-                </div>
-                <div className={styles.resultNote}>
-                  Referência técnica: {resultado.emissionsKgCO2e.toFixed(8)} kg CO₂e
-                </div>
-
-                <div className={styles.impactBarWrapper}>
-                  <div className={styles.impactBarTrack}>
-                    <div className={styles.impactBarFill} style={{ width: `${impacto.percentual}%`, background: impacto.cor }} />
-                  </div>
-                  <div className={styles.impactBarLabels}>
-                    <span>Baixo</span><span>Médio</span><span>Alto</span>
-                  </div>
-                </div>
-
-                <hr className={styles.resultDivider} />
-
-                <div className={styles.mensagemBox}>
-                  <span className={styles.mensagemIcone}>💡</span>
-                  <p className={styles.mensagemTexto}>{impacto.mensagem}</p>
-                </div>
-
-                <div className={styles.comparacoesLabel}>Isso equivale a...</div>
-                <div className={styles.comparacoesGrid}>
-                  {comparacoes.map((c, i) => (
-                    <div key={i} className={styles.comparacaoCard}>
-                      <span className={styles.comparacaoIcone}>{c.icone}</span>
-                      <div className={styles.comparacaoValor}>{c.valor}</div>
-                      <div className={styles.comparacaoDesc}>{c.descricao}</div>
+                  <div className={styles.row}>
+                    <div className={styles.field}>
+                      <label htmlFor="quantidade">Quantidade</label>
+                      <input
+                        id="quantidade"
+                        type="number"
+                        min="1"
+                        value={quantidade}
+                        onChange={e => setQuantidade(e.target.value)}
+                      />
                     </div>
-                  ))}
+                    <div className={styles.field}>
+                      <label htmlFor="peso">Peso estimado (kg)</label>
+                      <input
+                        id="peso"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="ex: 0.5"
+                        value={peso}
+                        onChange={e => setPeso(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.sectionLabel}>Meio de entrega / transação</div>
+
+                  <div className={styles.tabs}>
+                    <div
+                      className={`${styles.tab} ${tipoTransacao === 'fisico' ? styles.active : ''}`}
+                      onClick={() => trocarTransacao('fisico')}
+                    >
+                      Físico
+                    </div>
+                    <div
+                      className={`${styles.tab} ${tipoTransacao === 'digital' ? styles.active : ''}`}
+                      onClick={() => trocarTransacao('digital')}
+                    >
+                      Digital
+                    </div>
+                  </div>
+
+                  {tipoTransacao === 'fisico' && (
+                    <div className={styles.field}>
+                      <label htmlFor="operacao-fisica">Tipo de operação física</label>
+                      <select
+                        id="operacao-fisica"
+                        value={operacaoFisica}
+                        onChange={e => setOperacaoFisica(e.target.value)}
+                      >
+                        <option value="">Selecione...</option>
+                        {OPERACOES_FISICAS.map(op => (
+                          <option key={op.value} value={op.value}>{op.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {tipoTransacao === 'digital' && (
+                    <div className={styles.field}>
+                      <label htmlFor="operacao-digital">Tipo de operação digital</label>
+                      <select
+                        id="operacao-digital"
+                        value={operacaoDigital}
+                        onChange={e => setOperacaoDigital(e.target.value)}
+                      >
+                        <option value="">Selecione...</option>
+                        {OPERACOES_DIGITAIS.map(op => (
+                          <option key={op.value} value={op.value}>{op.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <button
+                    className={styles.btnCalc}
+                    onClick={calcular}
+                    disabled={carregando}
+                  >
+                    {carregando ? 'Calculando...' : 'Calcular emissões'}
+                  </button>
+
+                  {erro && <div className={styles.errorArea}>{erro}</div>}
+                </div>
+
+                <div className={styles.compCard}>
+                  <div className={styles.cardTitle}>Comparador de emissões: físico vs. digital</div>
+
+                  <div className={styles.compCols}>
+                    <div>
+                      <div className={styles.compColLabel}>Físico</div>
+                      <div className={styles.field}>
+                        <label htmlFor="comp-op-fisica">Tipo de operação física</label>
+                        <select
+                          id="comp-op-fisica"
+                          value={operacaoFisicaComp}
+                          onChange={e => setOperacaoFisicaComp(e.target.value)}
+                        >
+                          <option value="">Selecione...</option>
+                          {OPERACOES_FISICAS.map(op => (
+                            <option key={op.value} value={op.value}>{op.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.field}>
+                        <label htmlFor="comp-qtd-fisica">Quantidade</label>
+                        <input
+                          id="comp-qtd-fisica"
+                          type="number"
+                          min="1"
+                          value={qtdFisicaComp}
+                          onChange={e => setQtdFisicaComp(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className={styles.compColLabel}>Digital</div>
+                      <div className={styles.field}>
+                        <label htmlFor="comp-op-digital">Tipo de operação digital</label>
+                        <select
+                          id="comp-op-digital"
+                          value={operacaoDigitalComp}
+                          onChange={e => setOperacaoDigitalComp(e.target.value)}
+                        >
+                          <option value="">Selecione...</option>
+                          {OPERACOES_DIGITAIS.map(op => (
+                            <option key={op.value} value={op.value}>{op.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.field}>
+                        <label htmlFor="comp-qtd-digital">Quantidade</label>
+                        <input
+                          id="comp-qtd-digital"
+                          type="number"
+                          min="1"
+                          value={qtdDigitalComp}
+                          onChange={e => setQtdDigitalComp(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    className={styles.btnCalc}
+                    onClick={comparar}
+                    disabled={carregandoComp}
+                  >
+                    {carregandoComp ? 'Comparando...' : 'Comparar emissões'}
+                  </button>
+
+                  {erroComp && <div className={styles.errorArea}>{erroComp}</div>}
                 </div>
               </div>
-            )
-          })()}
+            )}
 
-          {erro && <div className={styles.errorArea}>{erro}</div>}
-        </div>
-
-        <div className={styles.compCard}>
-          <div className={styles.cardTitle}>Comparador de emissões: físico vs. digital</div>
-
-          <div className={styles.compCols}>
-            <div>
-              <div className={styles.compColLabel}>Físico</div>
-              <div className={styles.field}>
-                <label htmlFor="comp-op-fisica">Tipo de operação física</label>
-                <select id="comp-op-fisica" value={operacaoFisicaComp} onChange={e => setOperacaoFisicaComp(e.target.value)}>
-                  <option value="">Selecione...</option>
-                  {OPERACOES_FISICAS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
-                </select>
-              </div>
-              <div className={styles.field}>
-                <label htmlFor="comp-qtd-fisica">Quantidade</label>
-                <input id="comp-qtd-fisica" type="number" min="1" value={qtdFisicaComp} onChange={e => setQtdFisicaComp(e.target.value)} />
-              </div>
-            </div>
-            <div>
-              <div className={styles.compColLabel}>Digital</div>
-              <div className={styles.field}>
-                <label htmlFor="comp-op-digital">Tipo de operação digital</label>
-                <select id="comp-op-digital" value={operacaoDigitalComp} onChange={e => setOperacaoDigitalComp(e.target.value)}>
-                  <option value="">Selecione...</option>
-                  {OPERACOES_DIGITAIS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
-                </select>
-              </div>
-              <div className={styles.field}>
-                <label htmlFor="comp-qtd-digital">Quantidade</label>
-                <input id="comp-qtd-digital" type="number" min="1" value={qtdDigitalComp} onChange={e => setQtdDigitalComp(e.target.value)} />
-              </div>
-            </div>
+            {temResultado && (
+              <Link to="/relatorios-exportaveis" className={styles.btnRelatorio}>
+                Ver relatório
+              </Link>
+            )}
           </div>
 
-          <button className={styles.btnCalc} onClick={comparar} disabled={carregandoComp}>
-            {carregandoComp ? 'Comparando...' : 'Comparar emissões'}
-          </button>
+          {/* COLUNA DIREITA */}
+          <div className={styles.rightCol}>
+            {!temResultado ? (
+              <>
+                <div className={styles.resultadosTitle}>Resultados</div>
+                <div className={styles.semCalculo}>Cálculo não realizado</div>
+              </>
+            ) : (
+              <>
+                <Link to="/tabela-dados" className={styles.resultadosTitleLink}>
+                  Resultados
+                </Link>
 
-          {resultadoComp && (
-            <div className={styles.resultArea}>
-              <div className={styles.resultTitle}>Resultado da comparação</div>
-              <hr className={styles.resultDivider} />
-              <div className={styles.compResultGrid}>
-                <div>
-                  <div className={styles.resultLabel}>Emissões físicas</div>
-                  <div className={styles.resultDesc}>{resultadoComp.physicalDescription}</div>
-                  <div className={styles.resultDesc}>{resultadoComp.physicalQuantity} unidade(s)</div>
-                  <div className={styles.resultValue}>{formatarEmissoes(resultadoComp.physicalEmissionsKgCO2e)}</div>
-                </div>
-                <div>
-                  <div className={styles.resultLabel}>Emissões digitais</div>
-                  <div className={styles.resultDesc}>{resultadoComp.digitalDescription}</div>
-                  <div className={styles.resultDesc}>{resultadoComp.digitalQuantity} unidade(s)</div>
-                  <div className={styles.resultValue}>{formatarEmissoes(resultadoComp.digitalEmissionsKgCO2e)}</div>
-                </div>
-              </div>
-              <hr className={styles.resultDivider} />
-              <div className={styles.resultLabel}>Carbono evitado</div>
-              <div className={styles.avoidedValue}>{formatarEmissoes(resultadoComp.avoidedCarbonKgCO2e)}</div>
-              <div className={styles.resultNote}>{resultadoComp.avoidedCarbonKgCO2e.toFixed(8)} kg CO₂e (valor exato)</div>
-            </div>
-          )}
+                {resultado && (() => {
+                  const impacto = calcularNivelImpacto(resultado.emissionsKgCO2e)
+                  const comparacoes = gerarComparacoes(resultado.emissionsKgCO2e)
+                  return (
+                    <div className={styles.resultArea}>
+                      <div className={styles.resultHeader}>
+                        <div className={styles.resultTitle}>Resultado do cálculo</div>
+                        <span className={styles.impactBadge} style={{ color: impacto.cor, borderColor: impacto.cor }}>
+                          Impacto {impacto.nivel}
+                        </span>
+                      </div>
 
-          {erroComp && <div className={styles.errorArea}>{erroComp}</div>}
+                      <hr className={styles.resultDivider} />
+
+                      <div className={styles.resultGrid}>
+                        <div>
+                          <div className={styles.resultLabel}>Produto</div>
+                          <div className={styles.resultDesc}>{tipoProduto}</div>
+                        </div>
+                        <div>
+                          <div className={styles.resultLabel}>Peso estimado</div>
+                          <div className={styles.resultDesc}>{peso ? `${peso} kg` : '—'}</div>
+                        </div>
+                        <div>
+                          <div className={styles.resultLabel}>Operação</div>
+                          <div className={styles.resultDesc}>{resultado.description}</div>
+                        </div>
+                        <div>
+                          <div className={styles.resultLabel}>Quantidade</div>
+                          <div className={styles.resultDesc}>{resultado.quantity} unidade(s)</div>
+                        </div>
+                      </div>
+
+                      <hr className={styles.resultDivider} />
+
+                      <div className={styles.resultLabel}>Emissões totais estimadas</div>
+                      <div className={styles.resultValue} style={{ color: impacto.cor }}>
+                        {formatarEmissoes(resultado.emissionsKgCO2e)}
+                      </div>
+                      <div className={styles.resultNote}>
+                        Referência técnica: {resultado.emissionsKgCO2e.toFixed(8)} kg CO₂e
+                      </div>
+
+                      <div className={styles.impactBarWrapper}>
+                        <div className={styles.impactBarTrack}>
+                          <div className={styles.impactBarFill} style={{ width: `${impacto.percentual}%`, background: impacto.cor }} />
+                        </div>
+                        <div className={styles.impactBarLabels}>
+                          <span>Baixo</span><span>Médio</span><span>Alto</span>
+                        </div>
+                      </div>
+
+                      <hr className={styles.resultDivider} />
+
+                      <div className={styles.mensagemBox}>
+                        <span className={styles.mensagemIcone}>💡</span>
+                        <p className={styles.mensagemTexto}>{impacto.mensagem}</p>
+                      </div>
+
+                      <div className={styles.comparacoesLabel}>Isso equivale a...</div>
+                      <div className={styles.comparacoesGrid}>
+                        {comparacoes.map((c, i) => (
+                          <div key={i} className={styles.comparacaoCard}>
+                            <span className={styles.comparacaoIcone}>{c.icone}</span>
+                            <div className={styles.comparacaoValor}>{c.valor}</div>
+                            <div className={styles.comparacaoDesc}>{c.descricao}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {resultadoComp && (
+                  <div className={styles.resultArea} style={{ marginTop: '1rem' }}>
+                    <div className={styles.resultTitle}>Resultado da comparação</div>
+                    <hr className={styles.resultDivider} />
+                    <div className={styles.compResultGrid}>
+                      <div>
+                        <div className={styles.resultLabel}>Emissões físicas</div>
+                        <div className={styles.resultDesc}>{resultadoComp.physicalDescription}</div>
+                        <div className={styles.resultDesc}>{resultadoComp.physicalQuantity} unidade(s)</div>
+                        <div className={styles.resultValue}>{formatarEmissoes(resultadoComp.physicalEmissionsKgCO2e)}</div>
+                      </div>
+                      <div>
+                        <div className={styles.resultLabel}>Emissões digitais</div>
+                        <div className={styles.resultDesc}>{resultadoComp.digitalDescription}</div>
+                        <div className={styles.resultDesc}>{resultadoComp.digitalQuantity} unidade(s)</div>
+                        <div className={styles.resultValue}>{formatarEmissoes(resultadoComp.digitalEmissionsKgCO2e)}</div>
+                      </div>
+                    </div>
+                    <hr className={styles.resultDivider} />
+                    <div className={styles.resultLabel}>Carbono evitado</div>
+                    <div className={styles.avoidedValue}>{formatarEmissoes(resultadoComp.avoidedCarbonKgCO2e)}</div>
+                    <div className={styles.resultNote}>{resultadoComp.avoidedCarbonKgCO2e.toFixed(8)} kg CO₂e (valor exato)</div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
         </div>
       </div>
     </>
