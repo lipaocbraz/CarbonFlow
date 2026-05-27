@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import api from '../services/api'
 import styles from './Home.module.css'
+import { gerarHtmlRelatorio } from '../utils/relatorioHtml'
 
 const OPERACOES_FISICAS = [
   { value: 'VOUCHER_PAPEL', label: 'Voucher em papel' },
@@ -40,6 +41,8 @@ export default function Home() {
   const [resultadoComp, setResultadoComp] = useState(null)
   const [erroComp, setErroComp] = useState('')
   const [carregandoComp, setCarregandoComp] = useState(false)
+  const [erroRelatorio, setErroRelatorio] = useState('')
+  const [gerandoRelatorio, setGerandoRelatorio] = useState(false)
 
   const operationType = tipoTransacao === 'fisico' ? operacaoFisica : operacaoDigital
   const transactionType = tipoTransacao === 'fisico' ? 'FISICO' : 'DIGITAL'
@@ -95,6 +98,48 @@ export default function Home() {
       setErroComp(e.response?.data?.message || 'Não foi possível conectar ao servidor. Verifique se o backend está em execução.')
     } finally {
       setCarregandoComp(false)
+    }
+  }
+
+  async function gerarRelatorio() {
+    setErroRelatorio('')
+
+    // Cenário 2: nenhum cálculo realizado na sessão — bloqueia e orienta o usuário
+    if (!resultadoComp) {
+      setErroRelatorio(
+        'Nenhum cálculo comparativo foi realizado. Preencha os campos do comparador e clique em "Comparar emissões" antes de gerar o relatório.'
+      )
+      return
+    }
+
+    // Cenário 1: chama o backend, recebe o PDF e dispara o download
+    setGerandoRelatorio(true)
+    try {
+      const response = await api.post(
+        '/emissions/report',
+        {
+          physicalOperationType: resultadoComp.physicalOperationType,
+          physicalQuantity:      resultadoComp.physicalQuantity,
+          digitalOperationType:  resultadoComp.digitalOperationType,
+          digitalQuantity:       resultadoComp.digitalQuantity,
+        },
+        { responseType: 'blob' }
+      )
+
+      const url  = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+      const link = document.createElement('a')
+      link.href  = url
+      link.setAttribute('download', 'relatorio-carbonflow.pdf')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setErroRelatorio(
+        'Não foi possível gerar o relatório. Verifique se o backend está em execução e tente novamente.'
+      )
+    } finally {
+      setGerandoRelatorio(false)
     }
   }
 
@@ -350,6 +395,19 @@ export default function Home() {
           {erroComp && (
             <div className={styles.errorArea}>{erroComp}</div>
           )}
+
+          <div className={styles.reportSection}>
+            <button
+              className={styles.btnReport}
+              onClick={gerarRelatorio}
+              disabled={gerandoRelatorio}
+            >
+              {gerandoRelatorio ? 'Gerando relatório...' : 'Gerar Relatório Consultivo'}
+            </button>
+            {erroRelatorio && (
+              <div className={styles.errorArea}>{erroRelatorio}</div>
+            )}
+          </div>
         </div>
       </div>
     </>
