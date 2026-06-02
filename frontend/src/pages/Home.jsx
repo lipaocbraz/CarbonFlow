@@ -116,7 +116,7 @@ export default function Home() {
         quantity: Number(quantidade),
       })
       setResultado(data)
-      sessionStorage.setItem('cf_h1', JSON.stringify({ resultado: data, tipoProduto, peso }))
+      sessionStorage.setItem('cf_h1', JSON.stringify({ resultado: data, tipoProduto, peso, tipoTransacao }))
     } catch (e) {
       setErro(e.response?.data?.message || 'Não foi possível conectar ao servidor. Verifique se o backend está em execução.')
     } finally {
@@ -393,23 +393,19 @@ export default function Home() {
             )}
 
             {temResultado && (
-              <Link to="/relatorios-exportaveis" className={styles.btnRelatorio}>
-                Ver relatório
-              </Link>
+              <>
+                <button
+                  className={styles.btnRelatorio}
+                  onClick={gerarRelatorio}
+                  disabled={gerandoRelatorio}
+                >
+                  {gerandoRelatorio ? 'Gerando relatório...' : 'Ver relatório'}
+                </button>
+                {erroRelatorio && (
+                  <div className={styles.errorArea}>{erroRelatorio}</div>
+                )}
+              </>
             )}
-
-            <div className={styles.reportSection}>
-              <button
-                className={styles.btnReport}
-                onClick={gerarRelatorio}
-                disabled={gerandoRelatorio}
-              >
-                {gerandoRelatorio ? 'Gerando relatório...' : 'Gerar Relatório Consultivo'}
-              </button>
-              {erroRelatorio && (
-                <div className={styles.errorArea}>{erroRelatorio}</div>
-              )}
-            </div>
           </div>
 
           {/* COLUNA DIREITA */}
@@ -423,7 +419,7 @@ export default function Home() {
               <>
                 <Link
                   to="/tabela-dados"
-                  state={{ resultado, resultadoComp, tipoProduto, peso }}
+                  state={{ resultado, resultadoComp, tipoProduto, peso, tipoTransacao }}
                   className={styles.resultadosTitleLink}
                 >
                   Resultados

@@ -10,7 +10,7 @@ frontend/build/
 frontend/.vite/
 
 # Java / Maven
-target/
+backend/target/
 *.class
 *.jar
 *.war
