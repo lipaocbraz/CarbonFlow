@@ -125,3 +125,8 @@ html.dark [class*="btnReport"] {
   background: #262626 !important;
   color: #f72717 !important;
 }
+
+/* Tutorial */
+html.dark [class*="secaoDesc"] {
+  color: #e0e0e0 !important;
+}
