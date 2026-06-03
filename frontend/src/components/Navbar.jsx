@@ -27,8 +27,18 @@ export default function Navbar() {
         >
           Resultados
         </Link>
-        <a href="#">Suporte</a>
-        <a href="#">Config</a>
+        <Link
+          to="/suporte"
+          className={pathname === '/suporte' ? styles.navbarLinkActive : ''}
+        >
+          Suporte
+        </Link>
+        <Link
+          to="/configuracoes"
+          className={pathname === '/configuracoes' ? styles.navbarLinkActive : ''}
+        >
+          Config
+        </Link>
         <button onClick={handleLogout} className={styles.navbarLogout}>
           Sair
         </button>

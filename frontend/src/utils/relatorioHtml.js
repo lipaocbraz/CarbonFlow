@@ -29,36 +29,37 @@ function gerarResumoExecutivo(dados) {
       : 0
 
   if (dados.avoidedCarbonKgCO2e > 0) {
-    return `Esta análise comparativa avalia o impacto ambiental de
+    return `Esta análise <strong>simula</strong> o impacto ambiental de
       <strong>${dados.physicalQuantity} unidade(s)</strong> de
       <em>${dados.physicalDescription}</em> em contraste com
       <strong>${dados.digitalQuantity} unidade(s)</strong> de
       <em>${dados.digitalDescription}</em>.
-      Os resultados demonstram que a adoção do meio digital representa uma
-      <strong>redução de ${reducaoPct}%</strong> nas emissões de CO₂e,
-      totalizando <strong>${formatarEmissoes(dados.avoidedCarbonKgCO2e)}</strong> de carbono evitado.
-      Esses dados evidenciam o potencial estratégico da digitalização como alavanca
-      de sustentabilidade para a Edenred e seus clientes.`
+      Os resultados indicam que, caso o meio digital fosse adotado, haveria uma redução
+      potencial de <strong>${reducaoPct}%</strong> nas emissões de CO₂e,
+      representando <strong>${formatarEmissoes(dados.avoidedCarbonKgCO2e)}</strong> de
+      carbono potencialmente evitado. Esses dados são estimativas baseadas em fatores
+      de emissão padronizados e evidenciam o potencial da digitalização como estratégia
+      de sustentabilidade.`
   }
 
   if (dados.avoidedCarbonKgCO2e < 0) {
-    return `Esta análise comparativa avalia o impacto ambiental de
+    return `Esta análise <strong>simula</strong> o impacto ambiental de
       <strong>${dados.physicalQuantity} unidade(s)</strong> de
       <em>${dados.physicalDescription}</em> em contraste com
       <strong>${dados.digitalQuantity} unidade(s)</strong> de
       <em>${dados.digitalDescription}</em>.
-      No cenário analisado, as emissões digitais superam as físicas em
+      No cenário hipotético analisado, as emissões digitais superariam as físicas em
       <strong>${formatarEmissoes(Math.abs(dados.avoidedCarbonKgCO2e))}</strong>.
-      Recomenda-se revisar os volumes e tipos de operação considerados para identificar
+      Recomenda-se revisar os volumes e tipos de operação para identificar
       oportunidades de otimização ambiental.`
   }
 
-  return `Esta análise comparativa avalia o impacto ambiental de
+  return `Esta análise <strong>simula</strong> o impacto ambiental de
     <strong>${dados.physicalQuantity} unidade(s)</strong> de
     <em>${dados.physicalDescription}</em> em contraste com
     <strong>${dados.digitalQuantity} unidade(s)</strong> de
     <em>${dados.digitalDescription}</em>.
-    Os resultados indicam emissões equivalentes entre os dois meios para os volumes informados.`
+    O cenário hipotético indica emissões equivalentes entre os dois meios para os volumes informados.`
 }
 
 /**
@@ -84,7 +85,7 @@ export function gerarHtmlRelatorio(dados) {
       : '—'
 
   const avoidedLabel =
-    dados.avoidedCarbonKgCO2e >= 0 ? 'Carbono evitado' : 'Carbono adicional (digital > físico)'
+    dados.avoidedCarbonKgCO2e >= 0 ? 'Carbono potencialmente evitado' : 'Carbono adicional no cenário digital'
 
   const avoidedColor = dados.avoidedCarbonKgCO2e >= 0 ? '#f72717' : '#b71c1c'
 
@@ -382,7 +383,7 @@ export function gerarHtmlRelatorio(dados) {
       <div class="metric-card">
         <div class="metric-label">Redução percentual</div>
         <div class="metric-value" style="color: #162056;">${reducaoPct}%</div>
-        <div class="metric-desc">ao migrar do físico para o digital</div>
+        <div class="metric-desc">redução potencial ao adotar o meio digital</div>
       </div>
     </div>
 
@@ -437,17 +438,17 @@ export function gerarHtmlRelatorio(dados) {
       <div class="rec-box">
         ${dados.avoidedCarbonKgCO2e >= 0
           ? `<strong>Adoção do meio digital recomendada.</strong>
-            A migração de <em>${dados.physicalDescription}</em> para <em>${dados.digitalDescription}</em>
-            proporciona uma redução mensurável de ${reducaoPct}% nas emissões de CO₂e.
-            Para organizações com metas de descarbonização, essa transição representa
-            uma ação concreta e de baixo custo de implementação.
-            Recomenda-se documentar essa redução nos relatórios de ESG e monitorar
-            a evolução do indicador ao longo do tempo.`
+            A simulação indica que substituir <em>${dados.physicalDescription}</em> por
+            <em>${dados.digitalDescription}</em> poderia reduzir as emissões em
+            aproximadamente ${reducaoPct}%. Trata-se de um cenário hipotético baseado
+            em fatores de emissão padronizados — os valores reais dependerão do volume
+            efetivo de operações. Recomenda-se avaliar a viabilidade da transição e
+            monitorar os indicadores reais ao longo do tempo.`
           : `<strong>Atenção: revisão dos volumes recomendada.</strong>
-            No cenário avaliado, o meio digital apresenta emissões superiores ao físico.
-            Isso pode ocorrer por diferença significativa nos volumes ou por características
-            específicas da operação. Recomenda-se revisar os dados de entrada e avaliar
-            oportunidades de otimização das operações digitais selecionadas.`}
+            No cenário hipotético analisado, o meio digital apresentaria emissões
+            superiores ao físico. Isso pode ocorrer por diferença significativa nos
+            volumes ou por características específicas da operação. Recomenda-se revisar
+            os dados de entrada e avaliar oportunidades de otimização.`}
       </div>
     </div>
 
