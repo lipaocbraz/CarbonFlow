@@ -5,7 +5,9 @@ import styles from './Configuracoes.module.css'
 const IDIOMAS = ['Português', 'English', 'Deutsch', 'Espanhol']
 
 export default function Configuracoes() {
-  const [modoEscuro, setModoEscuro] = useState(false)
+  const [modoEscuro, setModoEscuro] = useState(
+    () => localStorage.getItem('darkMode') === 'true'
+  )
   const [tamanhoFonte, setTamanhoFonte] = useState(60)
   const [dislexia, setDislexia] = useState(true)
   const [idioma, setIdioma] = useState('Português')
@@ -21,7 +23,12 @@ export default function Configuracoes() {
             <span className={styles.optionLabel}>Modo escuro</span>
             <button
               className={`${styles.toggle} ${modoEscuro ? styles.toggleOn : ''}`}
-              onClick={() => setModoEscuro(v => !v)}
+              onClick={() => {
+                const next = !modoEscuro
+                setModoEscuro(next)
+                localStorage.setItem('darkMode', next)
+                document.documentElement.classList.toggle('dark', next)
+              }}
               aria-checked={modoEscuro}
               role="switch"
             >

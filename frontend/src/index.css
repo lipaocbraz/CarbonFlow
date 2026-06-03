@@ -11,3 +11,117 @@ html, body {
   margin: 0;
   padding: 0;
 }
+
+/* ── Modo escuro global ── */
+
+/* Fundos brancos/claros → #262626 */
+html.dark body,
+html.dark [class*="main"],
+html.dark [class*="page"],
+html.dark [class*="compCard"],
+html.dark [class*="formContent"],
+html.dark [class*="chartsSection"],
+html.dark [class*="indicatorsSection"] {
+  background: #262626 !important;
+}
+
+/* Cards com fundo branco */
+html.dark [class*="chartCard"] {
+  background: #2e2e2e !important;
+  border-color: #444 !important;
+}
+
+/* Card do login e formulários da Home */
+html.dark [class*="card"]:not([class*="indicatorCard"]):not([class*="comparacaoCard"]):not([class*="resultArea"]) {
+  background: #2e2e2e !important;
+  border-color: #444 !important;
+}
+
+/* Botão Adicionar Dados */
+html.dark [class*="btnAdicionar"] {
+  background: #3a3a3a !important;
+  color: #e0e0e0 !important;
+}
+
+/* Opções de acessibilidade */
+html.dark [class*="optionRow"] {
+  background: #3a3a3a !important;
+}
+
+/* Separadores */
+html.dark [class*="separator"] {
+  background: #444 !important;
+}
+
+html.dark [class*="chartsSectionTitle"] {
+  border-color: #444 !important;
+}
+
+/* ── Textos azul-escuro / cinza-escuro → claro ── */
+html.dark [class*="optionLabel"],
+html.dark [class*="indicatorsSectionTitle"],
+html.dark [class*="chartsSectionTitle"],
+html.dark [class*="sectionTitle"],
+html.dark [class*="semCalculo"],
+html.dark [class*="semDados"],
+html.dark [class*="pieCenter"],
+html.dark [class*="pieCenterText"],
+html.dark [class*="pieDesc"],
+html.dark [class*="piePercentages"],
+html.dark [class*="barLegend"],
+html.dark [class*="barAxisLabel"],
+html.dark [class*="faqTitle"],
+html.dark [class*="contactLabel"],
+html.dark [class*="tutorialText"] {
+  color: #e0e0e0 !important;
+}
+
+/* Títulos gerais de página */
+html.dark [class*="title"]:not([class*="cardTitle"]):not([class*="resultTitle"]) {
+  color: #e0e0e0 !important;
+}
+
+/* Labels de campo */
+html.dark [class*="field"] label {
+  color: #c0c0c0 !important;
+}
+
+/* Inputs e selects */
+html.dark [class*="field"] input,
+html.dark [class*="field"] select {
+  background: #333 !important;
+  color: #e0e0e0 !important;
+  border-color: #555 !important;
+}
+
+/* Divider de login ("Continue de outra forma") */
+html.dark [class*="divider"] {
+  color: #aaa !important;
+}
+
+/* Tabs inativas */
+html.dark [class*="tab"]:not([class*="active"]) {
+  background: #333 !important;
+  color: #e0e0e0 !important;
+  border-color: #555 !important;
+}
+
+/* Toggle group nos gráficos */
+html.dark [class*="toggleGroup"] {
+  background: #3a3a3a !important;
+}
+
+html.dark [class*="toggleBtn"]:not([class*="Active"]) {
+  color: #c0c0c0 !important;
+}
+
+html.dark [class*="toggleBtn"]:not([class*="Active"]):hover {
+  background: #444 !important;
+  color: #e0e0e0 !important;
+}
+
+/* Botão de relatório outline */
+html.dark [class*="btnReport"] {
+  background: #262626 !important;
+  color: #f72717 !important;
+}
