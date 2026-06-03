@@ -1,12 +1,15 @@
 package com.carbonflow.service;
 
 import com.carbonflow.exception.EmissionFactorNotFoundException;
-import com.carbonflow.model.EmissionResult;
-import com.carbonflow.model.OperationTypeInfo;
-import com.carbonflow.model.TransactionRequest;
-import org.springframework.stereotype.Service;
 import com.carbonflow.model.ComparisonRequest;
 import com.carbonflow.model.ComparisonResult;
+import com.carbonflow.model.EmissionResult;
+import com.carbonflow.model.OperationCategory;
+import com.carbonflow.model.OperationTypeInfo;
+import com.carbonflow.model.PeriodRequest;
+import com.carbonflow.model.PeriodResult;
+import com.carbonflow.model.TransactionRequest;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
@@ -30,7 +33,7 @@ public class EmissionService {
             throw new EmissionFactorNotFoundException(operationType);
         }
 
-        String description = operationType; //valor padrão caso não encontre
+        String description = operationType;
 
         for (OperationTypeInfo op : operationTypes){
             if (op.getOperationType().equals(operationType)){
@@ -39,7 +42,7 @@ public class EmissionService {
             }
         }
 
-        double totalEmissions = factor * request.getQuantity(); //caculo (fator pela qntd)
+        double totalEmissions = factor * request.getQuantity();
 
         return new EmissionResult(
                 operationType,
@@ -95,6 +98,46 @@ public class EmissionService {
                 digitalOperationType,
                 digitalDescription,
                 request.getDigitalQuantity(),
+                digitalEmissions
+        );
+    }
+
+    public PeriodResult calculateByPeriod(PeriodRequest request) {
+        OperationCategory category = request.getOperationCategory();
+
+        Double physicalFactor = emissionFactors.get(category.getPhysicalOperationType());
+        if (physicalFactor == null) {
+            throw new EmissionFactorNotFoundException(category.getPhysicalOperationType());
+        }
+
+        Double digitalFactor = emissionFactors.get(category.getDigitalOperationType());
+        if (digitalFactor == null) {
+            throw new EmissionFactorNotFoundException(category.getDigitalOperationType());
+        }
+
+        String physicalDescription = category.getPhysicalOperationType();
+        String digitalDescription = category.getDigitalOperationType();
+        for (OperationTypeInfo op : operationTypes) {
+            if (op.getOperationType().equals(category.getPhysicalOperationType())) {
+                physicalDescription = op.getDescription();
+            }
+            if (op.getOperationType().equals(category.getDigitalOperationType())) {
+                digitalDescription = op.getDescription();
+            }
+        }
+
+        double physicalEmissions = physicalFactor * request.getPhysicalQuantity();
+        double digitalEmissions = digitalFactor * request.getDigitalQuantity();
+
+        return new PeriodResult(
+                category.name(),
+                category.getLabel(),
+                request.getPeriod(),
+                request.getPhysicalQuantity(),
+                request.getDigitalQuantity(),
+                physicalDescription,
+                digitalDescription,
+                physicalEmissions,
                 digitalEmissions
         );
     }
