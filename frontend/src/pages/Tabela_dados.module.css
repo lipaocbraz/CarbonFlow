@@ -3,84 +3,10 @@
   min-height: 100vh;
 }
 
-/* ── Indicadores ── */
-.indicatorBar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0.75rem 2rem;
-  background: #f7faf7;
-}
-
-.indicator {
-  padding: 5px 18px;
-  border-radius: 999px;
-  border: 0.5px solid #ccc;
-  background: #f7faf7;
-  font-size: 13px;
-  color: #162056;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.indicatorActive {
-  background: #990b00;
-  border-color: #990b00;
-  color: #f7faf7;
-  font-weight: 600;
-}
-
-.separator {
-  height: 2px;
-  background: #e0e0e0;
-  margin: 0 2rem;
-}
-
-/* ── Seção de gráficos ── */
-.chartsSection {
-  padding: 1.5rem 2rem 2rem;
-}
-
-.chartsSectionTitle {
-  font-size: 15px;
-  font-weight: 600;
-  color: #f72717;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 0.5px solid #e0e0e0;
-}
-
-.chartsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-
-.chartCard {
-  background: #fff;
-  border: 0.5px solid #d0d0d0;
-  border-radius: 12px;
-  padding: 1.25rem;
-}
-
-.chartLabelPill {
-  display: inline-block;
-  padding: 4px 16px;
-  border-radius: 999px;
-  background: #162056;
-  color: #f7faf7;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  margin-bottom: 1rem;
-}
-
-.chartContainer {
-  width: 100%;
-  height: 280px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
 }
 
 .semDados {
@@ -91,28 +17,114 @@
   font-weight: 500;
 }
 
-.noData {
-  font-size: 13px;
-  color: #999;
+/* ── Títulos de seção ── */
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
   text-align: center;
-  padding: 2rem 0;
+  margin: 0 0 1.25rem;
 }
 
-/* ── Legenda customizada ── */
-.legend {
+/* ── Indicadores Gerais ── */
+.indicadoresBox {
+  background: #162056;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.indicadorRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 1.25rem;
+  border-bottom: 1.5px solid #990b00;
+}
+
+.indicadorRow:last-child {
+  border-bottom: none;
+}
+
+.indicadorLabel {
+  color: #cdd5f0;
+  font-size: 13px;
+}
+
+.indicadorValue {
+  color: #f7faf7;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ── Separador ── */
+.separator {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 2rem 0;
+}
+
+/* ── Pill dos gráficos ── */
+.chartLabelPill {
+  display: inline-block;
+  padding: 6px 22px;
+  border-radius: 999px;
+  background: #162056;
+  color: #f7faf7;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Pie ── */
+.pieContainer {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
-  margin-top: 0.75rem;
-  font-size: 12px;
+  width: 100%;
+}
+
+.pieDesc {
+  text-align: center;
+  font-size: 14px;
+  color: #444;
+  margin: 0.5rem 0 0;
+}
+
+/* ── Bar mensal ── */
+.barHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.barLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 13px;
   color: #333;
 }
 
-.legendDot {
+.barAxisLabel {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+  max-width: 130px;
+  line-height: 1.4;
+}
+
+.barRow {
+  margin-bottom: 0.5rem;
+}
+
+/* ── Legenda quadrada ── */
+.legendSquare {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 6px;
   vertical-align: middle;
 }
