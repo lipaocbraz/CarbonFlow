@@ -40,7 +40,7 @@ export default function Suporte() {
 
             <ul className={styles.faqList}>
               <li>
-                <Link to="/" className={styles.faqLink}>
+                <Link to="/tabela-dados" className={styles.faqLink}>
                   Onde ver os Indicadores Gerais.
                 </Link>
               </li>

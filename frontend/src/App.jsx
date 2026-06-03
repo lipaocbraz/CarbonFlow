@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import Tabela_dados from './pages/Tabela_dados'
 import Suporte from './pages/Suporte'
 import Configuracoes from './pages/Configuracoes'
+import Relatorios from './pages/Relatorios'
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -37,6 +38,7 @@ export default function App() {
       <Route path="/suporte" element={isAuthenticated ? <Suporte /> : <Navigate to="/login" />} />
       <Route path="/configuracoes" element={isAuthenticated ? <Configuracoes /> : <Navigate to="/login" />} />
       <Route path="/relatorios-exportaveis" element={isAuthenticated ? <div /> : <Navigate to="/login" />} />
+      <Route path="/relatorios" element={isAuthenticated ? <Relatorios /> : <Navigate to="/login" />} />
       <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} />} />
     </Routes>
   )

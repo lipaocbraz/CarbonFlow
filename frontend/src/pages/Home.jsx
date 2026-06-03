@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import styles from './Home.module.css'
 import { gerarHtmlRelatorio } from '../utils/relatorioHtml'
@@ -76,6 +76,7 @@ function gerarComparacoes(kg) {
 }
 
 export default function Home() {
+  const navigate = useNavigate()
   const [tipoProduto, setTipoProduto] = useState('')
   const [quantidade, setQuantidade] = useState(1)
   const [peso, setPeso] = useState('')
@@ -396,14 +397,10 @@ export default function Home() {
               <>
                 <button
                   className={styles.btnRelatorio}
-                  onClick={gerarRelatorio}
-                  disabled={gerandoRelatorio}
+                  onClick={() => navigate('/relatorios')}
                 >
-                  {gerandoRelatorio ? 'Gerando relatório...' : 'Ver relatório'}
+                  Ver relatório
                 </button>
-                {erroRelatorio && (
-                  <div className={styles.errorArea}>{erroRelatorio}</div>
-                )}
               </>
             )}
           </div>

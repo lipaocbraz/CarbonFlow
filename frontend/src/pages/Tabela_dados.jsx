@@ -9,8 +9,8 @@ import Navbar from '../components/Navbar'
 import styles from './Tabela_dados.module.css'
 
 const COR_FISICO  = '#990b00'
-const COR_DIGITAL = '#f72717'
-const COR_EVITADO = '#4ade80'
+const COR_DIGITAL = '#162056'
+const COR_EVITADO = '#d9d9d9'
 
 function formatKg(v) {
   if (v == null) return '—'
