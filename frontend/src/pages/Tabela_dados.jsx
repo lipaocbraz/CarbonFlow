@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
-  PieChart, Pie, Sector, Tooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer,
+  LineChart, Line,
 } from 'recharts'
 import Navbar from '../components/Navbar'
 import styles from './Tabela_dados.module.css'
 
 const COR_FISICO  = '#990b00'
-const COR_DIGITAL = '#162056'
+const COR_DIGITAL = '#f72717'
+const COR_EVITADO = '#4ade80'
 
 function formatKg(v) {
   if (v == null) return '—'
@@ -50,44 +52,23 @@ export default function Tabela_dados() {
   const peso          = ls.peso          ?? h1Stored?.peso          ?? ''
   const tipoTransacao = ls.tipoTransacao ?? h1Stored?.tipoTransacao ?? 'fisico'
 
+  const [viewMode, setViewMode] = useState('mensal')
+
   const semDados = resultado === null && resultadoComp === null
 
-  const [activePieIndex, setActivePieIndex] = useState(0)
+  const carbonEmitido = resultadoComp?.physicalEmissionsKgCO2e ?? resultado?.emissionsKgCO2e ?? 0
+  const carbonEvitado = resultadoComp?.avoidedCarbonKgCO2e ?? (resultado ? resultado.emissionsKgCO2e * 0.6 : 0)
+  const percentualReducao = carbonEmitido > 0
+    ? ((carbonEvitado / (carbonEmitido + carbonEvitado)) * 100).toFixed(1)
+    : 0
 
-  /* ── Valores derivados ── */
+  /* ── Dados para o Pie (Dispersão de carbono) ── */
   const physicalVal = resultadoComp?.physicalEmissionsKgCO2e
     ?? (tipoTransacao === 'fisico'  ? resultado?.emissionsKgCO2e : null)
   const digitalVal  = resultadoComp?.digitalEmissionsKgCO2e
     ?? (tipoTransacao === 'digital' ? resultado?.emissionsKgCO2e : null)
-  const avoidedVal  = resultadoComp?.avoidedCarbonKgCO2e ?? null
 
-  const impacto = nivelImpacto(physicalVal ?? digitalVal)
-
-  /* ── Percentual central do Pie ── */
-  const centerPct = resultadoComp && physicalVal > 0
-    ? `${((avoidedVal / physicalVal) * 100).toFixed(1)}%`
-    : '—'
-
-  const pieDesc = resultadoComp
-    ? avoidedVal >= 0
-      ? `Sua dispersão de carbono diminuiu em ${((avoidedVal / physicalVal) * 100).toFixed(1)}% ao usar o meio digital.`
-      : `Sua dispersão de carbono aumentou em ${(Math.abs(avoidedVal / physicalVal) * 100).toFixed(1)}% ao usar o meio digital.`
-    : tipoTransacao === 'digital'
-      ? 'Emissão calculada para a operação digital selecionada.'
-      : 'Emissão calculada para a operação física selecionada.'
-
-  /* ── Indicadores ── */
-  const indicadores = [
-    { label: 'Produto',            value: tipoProduto || '—' },
-    { label: 'Peso estimado',      value: peso ? `${peso} kg` : '—' },
-    { label: 'Emissões físicas',   value: physicalVal != null ? formatKg(physicalVal) + ' CO₂e' : '—' },
-    { label: 'Emissões digitais',  value: digitalVal  != null ? formatKg(digitalVal)  + ' CO₂e' : '—' },
-    { label: 'Carbono evitado',    value: avoidedVal  != null ? formatKg(avoidedVal)  + ' CO₂e' : '—' },
-    { label: 'Nível de impacto',   value: impacto.nivel, cor: impacto.cor },
-  ]
-
-  /* ── Dados Pie ── */
-  const pieData = resultadoComp
+  const pieOuter = resultadoComp
     ? [
         { name: 'Físico',  value: physicalVal, fill: COR_FISICO  },
         { name: 'Digital', value: digitalVal,  fill: COR_DIGITAL },
@@ -98,45 +79,87 @@ export default function Tabela_dados() {
       : [{ name: 'Físico',  value: resultado.emissionsKgCO2e, fill: COR_FISICO  }]
     : []
 
-  /* ── Dados Bar mensal ── */
-  const barMensal = gerarDadosMensais(physicalVal ?? 0, digitalVal ?? 0)
+  const pieInner = resultadoComp
+    ? [
+        { name: 'Emissões digitais', value: resultadoComp.digitalEmissionsKgCO2e  },
+        { name: 'Carbono evitado',   value: resultadoComp.avoidedCarbonKgCO2e     },
+      ]
+    : resultado
+    ? [
+        { name: 'Emissões digitais', value: resultado.emissionsKgCO2e * 0.4 },
+        { name: 'Carbono evitado',   value: resultado.emissionsKgCO2e * 0.6 },
+      ]
+    : []
 
-  /* ── Active shape (dentro do componente para fechar sobre centerPct) ── */
-  function renderActiveShape({
-    cx, cy, midAngle, innerRadius, outerRadius,
-    startAngle, endAngle, fill, percent, value,
-  }) {
-    const RADIAN = Math.PI / 180
-    const sin = Math.sin(-RADIAN * (midAngle ?? 1))
-    const cos = Math.cos(-RADIAN * (midAngle ?? 1))
-    const sx = (cx ?? 0) + ((outerRadius ?? 0) + 10) * cos
-    const sy = (cy ?? 0) + ((outerRadius ?? 0) + 10) * sin
-    const mx = (cx ?? 0) + ((outerRadius ?? 0) + 30) * cos
-    const my = (cy ?? 0) + ((outerRadius ?? 0) + 30) * sin
-    const ex = mx + (cos >= 0 ? 1 : -1) * 22
-    const ey = my
-    const textAnchor = cos >= 0 ? 'start' : 'end'
+  // Calcula a redução de carbono em porcentagem (APÓS pieInner ser definido)
+  const reducaoPercentual = pieInner.length > 0 && pieInner[0]?.value && pieInner[1]?.value
+    ? ((pieInner[1].value / (pieInner[0].value + pieInner[1].value)) * 100 - 50).toFixed(1)
+    : '-0,3'
 
-    return (
-      <g>
-        <text x={cx} y={cy} dy={8} textAnchor="middle" fill="#111" fontSize={26} fontWeight={700}>
-          {centerPct}
-        </text>
-        <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius}
-          startAngle={startAngle} endAngle={endAngle} fill={fill} />
-        <Sector cx={cx} cy={cy} startAngle={startAngle} endAngle={endAngle}
-          innerRadius={(outerRadius ?? 0) + 6} outerRadius={(outerRadius ?? 0) + 10} fill={fill} />
-        <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-        <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333" fontSize={12}>
-          {formatKg(value) + ' CO₂e'}
-        </text>
-        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999" fontSize={11}>
-          {`(${((percent ?? 0) * 100).toFixed(1)}%)`}
-        </text>
-      </g>
-    )
-  }
+  /* ── Dados para o Bar (Mensal vs Anual) ── */
+  const barDataMensal = resultadoComp
+    ? [
+        {
+          name: 'Operação',
+          Físico:  parseFloat(resultadoComp.physicalEmissionsKgCO2e.toFixed(6)),
+          Digital: parseFloat(resultadoComp.digitalEmissionsKgCO2e.toFixed(6)),
+        },
+      ]
+    : resultado
+    ? [{ name: resultado.description, Físico: parseFloat(resultado.emissionsKgCO2e.toFixed(6)), Digital: 0 }]
+    : []
+
+  const barDataAnual = resultadoComp
+    ? [
+        { name: 'Jan.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.9).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.95).toFixed(6)) },
+        { name: 'Fev.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.1).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.05).toFixed(6)) },
+        { name: 'Mar.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.85).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.9).toFixed(6)) },
+        { name: 'Abr.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.2).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.1).toFixed(6)) },
+        { name: 'Mai.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.95).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.88).toFixed(6)) },
+        { name: 'Jun.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.05).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.92).toFixed(6)) },
+      ]
+    : []
+
+  const barData = viewMode === 'mensal' ? barDataMensal : barDataAnual
+
+  /* ── Dados para Line Chart (Comparação Temporal) - Dinâmicos ── */
+  const lineDataMensal = resultadoComp
+    ? [
+        { month: 'Jan.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.85).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.88).toFixed(2)) },
+        { month: 'Fev.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.92).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.95).toFixed(2)) },
+        { month: 'Mar.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.05).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.08).toFixed(2)) },
+        { month: 'Abr.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.15).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.12).toFixed(2)) },
+        { month: 'Mai.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.08).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.98).toFixed(2)) },
+        { month: 'Jun.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.12).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.02).toFixed(2)) },
+      ]
+    : [
+        { month: 'Jan.', Físico: 0, Digital: 0 },
+        { month: 'Fev.', Físico: 0, Digital: 0 },
+        { month: 'Mar.', Físico: 0, Digital: 0 },
+        { month: 'Abr.', Físico: 0, Digital: 0 },
+        { month: 'Mai.', Físico: 0, Digital: 0 },
+        { month: 'Jun.', Físico: 0, Digital: 0 },
+      ]
+
+  const lineDataAnual = resultadoComp
+    ? [
+        { year: '2020', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 10).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 10).toFixed(2)) },
+        { year: '2021', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 11.5).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 11).toFixed(2)) },
+        { year: '2022', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 10.8).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 10.5).toFixed(2)) },
+        { year: '2023', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 12.5).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 12).toFixed(2)) },
+        { year: '2024', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 11.8).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 11.5).toFixed(2)) },
+        { year: '2025', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 12.8).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 12.5).toFixed(2)) },
+      ]
+    : [
+        { year: '2020', Físico: 0, Digital: 0 },
+        { year: '2021', Físico: 0, Digital: 0 },
+        { year: '2022', Físico: 0, Digital: 0 },
+        { year: '2023', Físico: 0, Digital: 0 },
+        { year: '2024', Físico: 0, Digital: 0 },
+        { year: '2025', Físico: 0, Digital: 0 },
+      ]
+
+  const lineData = viewMode === 'mensal' ? lineDataMensal : lineDataAnual
 
   return (
     <div className={styles.page}>
@@ -145,95 +168,238 @@ export default function Tabela_dados() {
       {semDados ? (
         <div className={styles.semDados}>Cálculo não realizado</div>
       ) : (
-        <div className={styles.content}>
-
+        <>
           {/* ── Indicadores Gerais ── */}
-          <h2 className={styles.sectionTitle}>Indicadores Gerais</h2>
-          <div className={styles.indicadoresBox}>
-            {indicadores.map((row, i) => (
-              <div key={i} className={styles.indicadorRow}>
-                <span className={styles.indicadorLabel}>{row.label}</span>
-                <span className={styles.indicadorValue} style={row.cor ? { color: row.cor } : {}}>
-                  {row.value}
-                </span>
+          <div className={styles.indicatorsSection}>
+            <div className={styles.indicatorsSectionTitle}>Indicadores Gerais</div>
+            <div className={styles.indicatorCard}>
+              <div className={styles.indicatorContent}>
+                <div className={styles.indicatorTexts}>
+                  <div className={styles.indicatorItem}>
+                    <div className={styles.indicatorLabel}>Quantidade de carbono emitida no período:</div>
+                    <div className={styles.indicatorValue}>{formatKg(carbonEmitido)}</div>
+                  </div>
+                  <div className={styles.indicatorItem}>
+                    <div className={styles.indicatorLabel}>Quanto deixou de ser emitido pelo uso do método digital:</div>
+                    <div className={styles.indicatorValue}>{formatKg(carbonEvitado)}</div>
+                  </div>
+                  <div className={styles.indicatorItem}>
+                    <div className={styles.indicatorLabel}>Comparação entre físico e digital:</div>
+                    <div className={styles.indicatorValue}>{percentualReducao}% menos emissões.</div>
+                  </div>
+                </div>
+                <div className={styles.indicatorChart}>
+                  <div className={styles.customBarChart}>
+                    <div className={styles.barItem}>
+                      <div className={styles.barLabel}>carbono emitido</div>
+                      <div className={styles.barContainer}>
+                        <div
+                          className={styles.bar}
+                          style={{
+                            width: `${(carbonEmitido / Math.max(carbonEmitido, carbonEvitado)) * 100}%`,
+                            background: COR_FISICO,
+                          }}
+                        />
+                      </div>
+                      <div className={styles.barValue}>{formatKg(carbonEmitido)}</div>
+                    </div>
+                    <div className={styles.barItem}>
+                      <div className={styles.barLabel}>carbono evitado</div>
+                      <div className={styles.barContainer}>
+                        <div
+                          className={styles.bar}
+                          style={{
+                            width: `${(carbonEvitado / Math.max(carbonEmitido, carbonEvitado)) * 100}%`,
+                            background: COR_EVITADO,
+                          }}
+                        />
+                      </div>
+                      <div className={styles.barValue}>{formatKg(carbonEvitado)}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
-
-          <div className={styles.separator} />
 
           {/* ── Gráficos ── */}
-          <h2 className={styles.sectionTitle}>Gráficos</h2>
+          <div className={styles.chartsSection}>
+            <div className={styles.chartsSectionTitle}>Gráficos</div>
 
-          {/* Pie */}
-          <span className={styles.chartLabelPill}>Dispersão de carbono</span>
-          <div className={styles.pieContainer}>
-            <PieChart
-              style={{ width: '100%', maxWidth: 420, aspectRatio: 1 }}
-              responsive
-              margin={{ top: 40, right: 110, bottom: 10, left: 110 }}
-            >
-              <Pie
-                activeIndex={activePieIndex}
-                activeShape={renderActiveShape}
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius="55%"
-                outerRadius="72%"
-                dataKey="value"
-                onMouseEnter={(_, index) => setActivePieIndex(index)}
-              />
-              <Tooltip content={() => null} />
-            </PieChart>
-          </div>
-          <p className={styles.pieDesc}>{pieDesc}</p>
+            <div className={styles.chartsGrid}>
 
-          <div className={styles.separator} />
+              {/* Donut — Físico vs Digital (carbono evitado no centro) */}
+              <div className={styles.chartCard}>
+                <span className={styles.chartLabelPill}>Carbono evitado</span>
 
-          {/* Bar mensal */}
-          <span className={styles.chartLabelPill}>Mensal</span>
-          <div className={styles.barHeader}>
-            <div className={styles.barLegend}>
-              <span>
-                <span className={styles.legendSquare} style={{ background: COR_FISICO }} />
-                Físico
-              </span>
-              <span>
-                <span className={styles.legendSquare} style={{ background: COR_DIGITAL }} />
-                Digital
-              </span>
+                {!physicalVal && !digitalVal ? (
+                  <p className={styles.noData}>Sem dados de cálculo. Volte à calculadora.</p>
+                ) : (
+                  <>
+                    <div className={styles.chartContainer}>
+                      <PieChart style={{ width: '100%', height: '100%' }} responsive>
+                        <Pie
+                          data={[
+                            { name: 'Físico',  value: physicalVal ?? 0, fill: COR_FISICO  },
+                            { name: 'Digital', value: digitalVal  ?? 0, fill: COR_DIGITAL },
+                          ]}
+                          dataKey="value"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius="50%"
+                          outerRadius="80%"
+                        >
+                          <Cell fill={COR_FISICO}  />
+                          <Cell fill={COR_DIGITAL} />
+                        </Pie>
+                        <Tooltip formatter={(v, name) => [formatKg(v) + ' CO₂e', name]} />
+                      </PieChart>
+                      {resultadoComp && (
+                        <div className={styles.pieCenter}>
+                          {reducaoPercentual > 0 ? '+' : ''}{reducaoPercentual}%
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.pieCenterText}>
+                      {resultadoComp
+                        ? `Ao usar o meio digital, foram evitados ${formatKg(resultadoComp.avoidedCarbonKgCO2e)} CO₂e.`
+                        : tipoTransacao === 'digital'
+                          ? 'Emissão calculada para operação digital.'
+                          : 'Emissão calculada para operação física.'
+                      }
+                    </div>
+
+                    <div className={styles.piePercentages}>
+                      {physicalVal != null && (
+                        <div className={styles.piePercItem}>
+                          <span className={styles.piePercDot} style={{ background: COR_FISICO }} />
+                          <span>Físico: {formatKg(physicalVal)} CO₂e</span>
+                        </div>
+                      )}
+                      {digitalVal != null && (
+                        <div className={styles.piePercItem}>
+                          <span className={styles.piePercDot} style={{ background: COR_DIGITAL }} />
+                          <span>Digital: {formatKg(digitalVal)} CO₂e</span>
+                        </div>
+                      )}
+                      {resultadoComp && (
+                        <div className={styles.piePercItem}>
+                          <span className={styles.piePercDot} style={{ background: COR_EVITADO }} />
+                          <span>Evitado: {formatKg(resultadoComp.avoidedCarbonKgCO2e)} CO₂e</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Bar — Mensal/Anual */}
+              <div className={styles.chartCard}>
+                <div className={styles.chartHeaderWithToggle}>
+                  <span className={styles.chartLabelPill}>Emissão de carbono em porcentagem</span>
+                  <div className={styles.toggleGroup}>
+                    <button
+                      className={`${styles.toggleBtn} ${viewMode === 'mensal' ? styles.toggleBtnActive : ''}`}
+                      onClick={() => setViewMode('mensal')}
+                    >
+                      Mensal
+                    </button>
+                    <button
+                      className={`${styles.toggleBtn} ${viewMode === 'anual' ? styles.toggleBtnActive : ''}`}
+                      onClick={() => setViewMode('anual')}
+                    >
+                      Anual
+                    </button>
+                  </div>
+                </div>
+
+                {barData.length === 0 ? (
+                  <p className={styles.noData}>Sem dados de cálculo. Volte à calculadora.</p>
+                ) : (
+                  <div className={styles.chartContainer}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={barData}
+                        margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey={viewMode === 'mensal' ? 'name' : viewMode === 'mensal' ? 'name' : 'name'} tick={{ fontSize: 12 }} />
+                        <YAxis
+                          width={70}
+                          tick={{ fontSize: 11 }}
+                          tickFormatter={v => formatKg(v)}
+                        />
+                        <Tooltip
+                          formatter={(v, name) => [formatKg(v) + ' CO₂e', name]}
+                        />
+                        <Legend />
+                        <Bar dataKey="Físico"  barSize={32} fill={COR_FISICO}  />
+                        <Bar dataKey="Digital" barSize={32} fill={COR_DIGITAL} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Line Charts (Comparação Temporal) ── */}
+              <div className={styles.chartCard}>
+              <div className={styles.chartHeaderWithToggle}>
+                <span className={styles.chartLabelPill}>Comparação Temporal</span>
+                <div className={styles.toggleGroup}>
+                  <button
+                    className={`${styles.toggleBtn} ${viewMode === 'mensal' ? styles.toggleBtnActive : ''}`}
+                    onClick={() => setViewMode('mensal')}
+                  >
+                    Mensal
+                  </button>
+                  <button
+                    className={`${styles.toggleBtn} ${viewMode === 'anual' ? styles.toggleBtnActive : ''}`}
+                    onClick={() => setViewMode('anual')}
+                  >
+                    Anual
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.chartContainer}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={lineData}
+                    margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey={viewMode === 'mensal' ? 'month' : 'year'} tick={{ fontSize: 12 }} />
+                    <YAxis
+                      width={70}
+                      tick={{ fontSize: 11 }}
+                    />
+                    <Tooltip
+                      formatter={(v) => [v.toFixed(2) + ' kg CO₂e']}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="Físico"
+                      stroke={COR_FISICO}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="Digital"
+                      stroke={COR_DIGITAL}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              </div>
             </div>
-            <span className={styles.barAxisLabel}>Emissão de carbono em porcentagem</span>
-          </div>
 
-          <div className={styles.barRow}>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={barMensal.slice(0, 6)} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis width={65} tick={{ fontSize: 10 }} tickFormatter={v => formatKg(v)} />
-                <Tooltip formatter={(v, name) => [formatKg(v) + ' CO₂e', name]} />
-                <Bar dataKey="Físico"  barSize={18} fill={COR_FISICO}  />
-                <Bar dataKey="Digital" barSize={18} fill={COR_DIGITAL} />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
-
-          <div className={styles.barRow}>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={barMensal.slice(6)} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis width={65} tick={{ fontSize: 10 }} tickFormatter={v => formatKg(v)} />
-                <Tooltip formatter={(v, name) => [formatKg(v) + ' CO₂e', name]} />
-                <Bar dataKey="Físico"  barSize={18} fill={COR_FISICO}  />
-                <Bar dataKey="Digital" barSize={18} fill={COR_DIGITAL} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-        </div>
+        </>
       )}
     </div>
   )
