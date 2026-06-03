@@ -17,6 +17,8 @@ export default function Relatorios() {
     const resultadoComp = JSON.parse(raw)
     setGerandoRelatorio(true)
     try {
+      const history = JSON.parse(localStorage.getItem('cf_history') || '[]')
+
       const response = await api.post(
         '/emissions/report',
         {
@@ -24,6 +26,15 @@ export default function Relatorios() {
           physicalQuantity: resultadoComp.physicalQuantity,
           digitalOperationType: resultadoComp.digitalOperationType,
           digitalQuantity: resultadoComp.digitalQuantity,
+          periods: history.map(h => ({
+            periodLabel:        h.label,
+            vezesNoMes:         h.vezesNoMes,
+            physicalDescription: h.physicalDescription,
+            digitalDescription:  h.digitalDescription,
+            totalPhysicalKgCO2e: h.totalPhysicalKgCO2e,
+            totalDigitalKgCO2e:  h.totalDigitalKgCO2e,
+            totalAvoidedKgCO2e:  h.totalAvoidedKgCO2e,
+          })),
         },
         { responseType: 'blob' }
       )

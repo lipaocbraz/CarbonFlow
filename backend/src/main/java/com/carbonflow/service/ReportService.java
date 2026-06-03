@@ -2,6 +2,7 @@ package com.carbonflow.service;
 
 import com.carbonflow.model.ComparisonRequest;
 import com.carbonflow.model.ComparisonResult;
+import com.carbonflow.model.PeriodData;
 import com.carbonflow.model.ReportRequest;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
@@ -11,6 +12,7 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -61,6 +63,12 @@ public class ReportService {
             addAvoidedCarbon(document, result);
             addSpacer(document, 10f);
             addRecommendation(document, result);
+
+            if (request.getPeriods() != null && !request.getPeriods().isEmpty()) {
+                addSpacer(document, 10f);
+                addTemporalHistory(document, request.getPeriods());
+            }
+
             addSpacer(document, 24f);
             addFooter(document);
 
@@ -131,30 +139,30 @@ public class ReportService {
 
         if (result.getAvoidedCarbonKgCO2e() > 0) {
             texto = String.format(
-                "Esta análise comparativa avalia o impacto ambiental de %d unidade(s) de %s " +
-                "em contraste com %d unidade(s) de %s. Os resultados demonstram que a adoção do " +
-                "meio digital representa uma redução de %s nas emissões de CO2e, totalizando %s " +
-                "de carbono evitado. Esses dados evidenciam o potencial estratégico da digitalização " +
-                "como alavanca de sustentabilidade para a Edenred e seus clientes.",
+                "Esta análise comparativa simula o impacto ambiental de %d unidade(s) de %s " +
+                "em contraste com %d unidade(s) de %s. Os resultados indicam que, caso o meio " +
+                "digital fosse adotado, haveria uma redução potencial de %s nas emissões de CO2e, " +
+                "representando %s de carbono potencialmente evitado. Esses dados evidenciam o " +
+                "potencial estratégico da digitalização como alavanca de sustentabilidade.",
                 result.getPhysicalQuantity(), result.getPhysicalDescription(),
                 result.getDigitalQuantity(),  result.getDigitalDescription(),
                 reducaoPct, formatarEmissoes(result.getAvoidedCarbonKgCO2e())
             );
         } else if (result.getAvoidedCarbonKgCO2e() < 0) {
             texto = String.format(
-                "Esta análise comparativa avalia o impacto ambiental de %d unidade(s) de %s " +
-                "em contraste com %d unidade(s) de %s. No cenário analisado, as emissões digitais " +
-                "superam as físicas em %s. Recomenda-se revisar os volumes e tipos de operação " +
-                "considerados para identificar oportunidades de otimização ambiental.",
+                "Esta análise comparativa simula o impacto ambiental de %d unidade(s) de %s " +
+                "em contraste com %d unidade(s) de %s. No cenário hipotético analisado, as emissões " +
+                "digitais superariam as físicas em %s. Recomenda-se revisar os volumes e tipos de " +
+                "operação considerados para identificar oportunidades de otimização ambiental.",
                 result.getPhysicalQuantity(), result.getPhysicalDescription(),
                 result.getDigitalQuantity(),  result.getDigitalDescription(),
                 formatarEmissoes(Math.abs(result.getAvoidedCarbonKgCO2e()))
             );
         } else {
             texto = String.format(
-                "Esta análise comparativa avalia o impacto ambiental de %d unidade(s) de %s " +
+                "Esta análise comparativa simula o impacto ambiental de %d unidade(s) de %s " +
                 "em contraste com %d unidade(s) de %s. " +
-                "Os resultados indicam emissões equivalentes entre os dois meios para os volumes informados.",
+                "O cenário hipotético indica emissões equivalentes entre os dois meios para os volumes informados.",
                 result.getPhysicalQuantity(), result.getPhysicalDescription(),
                 result.getDigitalQuantity(),  result.getDigitalDescription()
             );
@@ -194,7 +202,7 @@ public class ReportService {
         addMetricCard(table,
                 "REDUÇÃO PERCENTUAL",
                 calcReducaoPct(result),
-                "ao migrar do físico para o digital",
+                "redução potencial ao adotar o meio digital",
                 NAVY);
 
         document.add(table);
@@ -278,7 +286,7 @@ public class ReportService {
     // ── Carbono evitado (destaque) ───────────────────────────
     private void addAvoidedCarbon(Document document, ComparisonResult result) throws DocumentException {
         boolean positivo = result.getAvoidedCarbonKgCO2e() >= 0;
-        addSectionTitle(document, positivo ? "CARBONO EVITADO" : "CARBONO ADICIONAL (digital > físico)");
+        addSectionTitle(document, positivo ? "CARBONO POTENCIALMENTE EVITADO" : "CARBONO ADICIONAL NO CENÁRIO DIGITAL");
 
         String valorExato = String.format(Locale.US, "%.8f kg CO2e (valor exato)", result.getAvoidedCarbonKgCO2e());
         String pctTexto   = (positivo && result.getPhysicalEmissionsKgCO2e() > 0)
@@ -310,11 +318,11 @@ public class ReportService {
         String texto;
         if (result.getAvoidedCarbonKgCO2e() >= 0) {
             texto = String.format(
-                "Adoção do meio digital recomendada. A migração de %s para %s proporciona " +
-                "uma redução mensurável de %s nas emissões de CO2e. Para organizações com metas " +
-                "de descarbonização, essa transição representa uma ação concreta e de baixo custo " +
-                "de implementação. Recomenda-se documentar essa redução nos relatórios de ESG " +
-                "e monitorar a evolução do indicador ao longo do tempo.",
+                "Adoção do meio digital recomendada. A simulação indica que substituir %s por %s " +
+                "poderia reduzir as emissões em aproximadamente %s. Trata-se de um cenário hipotético " +
+                "baseado em fatores de emissão padronizados — os valores reais dependerão do volume " +
+                "efetivo de operações. Para organizações com metas de descarbonização, recomenda-se " +
+                "avaliar a viabilidade da transição e monitorar os indicadores reais ao longo do tempo.",
                 result.getPhysicalDescription(), result.getDigitalDescription(), calcReducaoPct(result)
             );
         } else {
@@ -341,6 +349,64 @@ public class ReportService {
         textCell.setBorder(Rectangle.NO_BORDER);
         textCell.setPadding(14f);
         table.addCell(textCell);
+
+        document.add(table);
+    }
+
+    // ── Histórico por período ────────────────────────────────
+    private void addTemporalHistory(Document document, List<PeriodData> periods) throws DocumentException {
+        addSectionTitle(document, "HISTÓRICO POR PERÍODO");
+
+        PdfPTable table = new PdfPTable(5);
+        table.setWidthPercentage(100f);
+        table.setWidths(new float[]{1.2f, 0.8f, 2f, 2f, 1.5f});
+
+        String[] headers = {"Período", "Ocorrências/mês", "Físico (total)", "Digital (total)", "Potencial evitado"};
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, new Font(Font.HELVETICA, 9, Font.BOLD, LIGHT)));
+            cell.setBackgroundColor(NAVY);
+            cell.setBorder(Rectangle.NO_BORDER);
+            cell.setPadding(7f);
+            table.addCell(cell);
+        }
+
+        boolean alt = false;
+        double acumFisico = 0, acumDigital = 0, acumEvitado = 0;
+        for (PeriodData p : periods) {
+            Color bg = alt ? LIGHT_GRAY : new Color(255, 255, 255);
+            Font f = new Font(Font.HELVETICA, 9, Font.NORMAL, NAVY);
+            String[] vals = {
+                p.getPeriodLabel(),
+                String.valueOf(p.getVezesNoMes()) + "x",
+                formatarEmissoes(p.getTotalPhysicalKgCO2e()),
+                formatarEmissoes(p.getTotalDigitalKgCO2e()),
+                formatarEmissoes(p.getTotalAvoidedKgCO2e()),
+            };
+            for (String v : vals) {
+                PdfPCell cell = new PdfPCell(new Phrase(v, f));
+                cell.setBackgroundColor(bg);
+                cell.setBorderColor(BORDER_GRAY);
+                cell.setBorderWidth(0.5f);
+                cell.setPadding(7f);
+                table.addCell(cell);
+            }
+            acumFisico  += p.getTotalPhysicalKgCO2e();
+            acumDigital += p.getTotalDigitalKgCO2e();
+            acumEvitado += p.getTotalAvoidedKgCO2e();
+            alt = !alt;
+        }
+
+        // Linha de totais
+        Font boldBlue = new Font(Font.HELVETICA, 9, Font.BOLD, NAVY);
+        String[] totals = {"TOTAL", "—", formatarEmissoes(acumFisico), formatarEmissoes(acumDigital), formatarEmissoes(acumEvitado)};
+        for (String v : totals) {
+            PdfPCell cell = new PdfPCell(new Phrase(v, boldBlue));
+            cell.setBackgroundColor(new Color(232, 234, 246));
+            cell.setBorderColor(BORDER_GRAY);
+            cell.setBorderWidth(0.5f);
+            cell.setPadding(7f);
+            table.addCell(cell);
+        }
 
         document.add(table);
     }

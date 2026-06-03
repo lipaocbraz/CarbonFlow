@@ -5,6 +5,18 @@ import styles from './Home.module.css'
 import { gerarHtmlRelatorio } from '../utils/relatorioHtml'
 import Navbar from '../components/Navbar'
 
+const MESES_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+const MESES_SHORT  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+const ANO_ATUAL = new Date().getFullYear()
+const ANOS = [ANO_ATUAL - 1, ANO_ATUAL, ANO_ATUAL + 1]
+
+function salvarHistorico(entry) {
+  const prev = JSON.parse(localStorage.getItem('cf_history') || '[]')
+  const updated = [...prev.filter(e => e.period !== entry.period), entry]
+    .sort((a, b) => a.period.localeCompare(b.period))
+  localStorage.setItem('cf_history', JSON.stringify(updated))
+}
+
 const OPERACOES_FISICAS = [
   { value: 'VOUCHER_PAPEL', label: 'Voucher em papel' },
   { value: 'CARTAO_PLASTICO', label: 'Cartão de benefício plástico' },
@@ -91,6 +103,9 @@ export default function Home() {
   const [qtdFisicaComp, setQtdFisicaComp] = useState(1)
   const [operacaoDigitalComp, setOperacaoDigitalComp] = useState('')
   const [qtdDigitalComp, setQtdDigitalComp] = useState(1)
+  const [mesComp, setMesComp] = useState(new Date().getMonth() + 1)
+  const [anoComp, setAnoComp] = useState(ANO_ATUAL)
+  const [vezesNoMes, setVezesNoMes] = useState(1)
   const [resultadoComp, setResultadoComp] = useState(null)
   const [erroComp, setErroComp] = useState('')
   const [carregandoComp, setCarregandoComp] = useState(false)
@@ -148,6 +163,24 @@ export default function Home() {
       })
       setResultadoComp(data)
       sessionStorage.setItem('cf_h2', JSON.stringify(data))
+      const period = `${anoComp}-${String(mesComp).padStart(2, '0')}`
+      salvarHistorico({
+        period,
+        label: `${MESES_SHORT[mesComp - 1]}/${anoComp}`,
+        vezesNoMes: Number(vezesNoMes),
+        physicalOperationType: data.physicalOperationType,
+        physicalDescription: data.physicalDescription,
+        physicalQuantity: data.physicalQuantity,
+        digitalOperationType: data.digitalOperationType,
+        digitalDescription: data.digitalDescription,
+        digitalQuantity: data.digitalQuantity,
+        physicalEmissionsKgCO2e: data.physicalEmissionsKgCO2e,
+        digitalEmissionsKgCO2e: data.digitalEmissionsKgCO2e,
+        avoidedCarbonKgCO2e: data.avoidedCarbonKgCO2e,
+        totalPhysicalKgCO2e: data.physicalEmissionsKgCO2e * Number(vezesNoMes),
+        totalDigitalKgCO2e: data.digitalEmissionsKgCO2e * Number(vezesNoMes),
+        totalAvoidedKgCO2e: data.avoidedCarbonKgCO2e * Number(vezesNoMes),
+      })
     } catch (e) {
       setErroComp(e.response?.data?.message || 'Não foi possível conectar ao servidor. Verifique se o backend está em execução.')
     } finally {
@@ -380,6 +413,33 @@ export default function Home() {
                     </div>
                   </div>
 
+                  <div className={styles.sectionLabel} style={{ marginTop: '1rem' }}>Período da operação</div>
+                  <div className={styles.row}>
+                    <div className={styles.field}>
+                      <label>Mês</label>
+                      <select value={mesComp} onChange={e => setMesComp(Number(e.target.value))}>
+                        {MESES_LABELS.map((m, i) => (
+                          <option key={i + 1} value={i + 1}>{m}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className={styles.field}>
+                      <label>Ano</label>
+                      <select value={anoComp} onChange={e => setAnoComp(Number(e.target.value))}>
+                        {ANOS.map(a => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className={styles.field}>
+                    <label>Vezes que a operação ocorre no mês</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={vezesNoMes}
+                      onChange={e => setVezesNoMes(e.target.value)}
+                    />
+                  </div>
+
                   <button
                     className={styles.btnCalc}
                     onClick={comparar}
@@ -514,7 +574,7 @@ export default function Home() {
                       </div>
                     </div>
                     <hr className={styles.resultDivider} />
-                    <div className={styles.resultLabel}>Carbono evitado</div>
+                    <div className={styles.resultLabel}>Carbono potencialmente evitado</div>
                     <div className={styles.avoidedValue}>{formatarEmissoes(resultadoComp.avoidedCarbonKgCO2e)}</div>
                     <div className={styles.resultNote}>{resultadoComp.avoidedCarbonKgCO2e.toFixed(8)} kg CO₂e (valor exato)</div>
                   </div>
