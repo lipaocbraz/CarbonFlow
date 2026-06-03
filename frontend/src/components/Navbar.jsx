@@ -13,7 +13,6 @@ export default function Navbar() {
           style={{ height: 32 }}
           onError={e => { e.target.style.display = 'none' }}
         />
-        CarbonFlow
       </Link>
       <div className={styles.navbarLinks}>
         <Link
