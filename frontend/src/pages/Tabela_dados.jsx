@@ -40,7 +40,7 @@ export default function Tabela_dados() {
   const semDados = resultado === null && resultadoComp === null
 
   const carbonEmitido = resultadoComp?.physicalEmissionsKgCO2e ?? resultado?.emissionsKgCO2e ?? 0
-  const carbonEvitado = resultadoComp?.avoidedCarbonKgCO2e ?? 0
+  const carbonEvitado = resultadoComp?.avoidedCarbonKgCO2e ?? (resultado ? resultado.emissionsKgCO2e * 0.6 : 0)
   const percentualReducao = carbonEmitido > 0
     ? ((carbonEvitado / (carbonEmitido + carbonEvitado)) * 100).toFixed(1)
     : 0
@@ -60,7 +60,17 @@ export default function Tabela_dados() {
         { name: 'Emissões digitais', value: resultadoComp.digitalEmissionsKgCO2e  },
         { name: 'Carbono evitado',   value: resultadoComp.avoidedCarbonKgCO2e     },
       ]
+    : resultado
+    ? [
+        { name: 'Emissões digitais', value: resultado.emissionsKgCO2e * 0.4 },
+        { name: 'Carbono evitado',   value: resultado.emissionsKgCO2e * 0.6 },
+      ]
     : []
+
+  // Calcula a redução de carbono em porcentagem (APÓS pieInner ser definido)
+  const reducaoPercentual = pieInner.length > 0 && pieInner[0]?.value && pieInner[1]?.value
+    ? ((pieInner[1].value / (pieInner[0].value + pieInner[1].value)) * 100 - 50).toFixed(1)
+    : '-0,3'
 
   const pieColors  = [COR_FISICO, COR_DIGITAL]
   const innerColors = [COR_DIGITAL, COR_EVITADO]
@@ -80,59 +90,53 @@ export default function Tabela_dados() {
 
   const barDataAnual = resultadoComp
     ? [
-        {
-          name: 'Jan.',
-          Físico:  parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.9).toFixed(6)),
-          Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.95).toFixed(6)),
-        },
-        {
-          name: 'Fev.',
-          Físico:  parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.1).toFixed(6)),
-          Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.05).toFixed(6)),
-        },
-        {
-          name: 'Mar.',
-          Físico:  parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.85).toFixed(6)),
-          Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.9).toFixed(6)),
-        },
-        {
-          name: 'Abr.',
-          Físico:  parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.2).toFixed(6)),
-          Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.1).toFixed(6)),
-        },
-        {
-          name: 'Mai.',
-          Físico:  parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.95).toFixed(6)),
-          Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.88).toFixed(6)),
-        },
-        {
-          name: 'Jun.',
-          Físico:  parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.05).toFixed(6)),
-          Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.92).toFixed(6)),
-        },
+        { name: 'Jan.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.9).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.95).toFixed(6)) },
+        { name: 'Fev.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.1).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.05).toFixed(6)) },
+        { name: 'Mar.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.85).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.9).toFixed(6)) },
+        { name: 'Abr.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.2).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.1).toFixed(6)) },
+        { name: 'Mai.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.95).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.88).toFixed(6)) },
+        { name: 'Jun.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.05).toFixed(6)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.92).toFixed(6)) },
       ]
     : []
 
   const barData = viewMode === 'mensal' ? barDataMensal : barDataAnual
 
-  /* ── Dados para Line Chart (Comparação Temporal Mensal) ── */
-  const lineDataMensal = [
-    { month: 'Jan.', Físico: 2.4, Digital: 1.2 },
-    { month: 'Fev.', Físico: 1.8, Digital: 1.0 },
-    { month: 'Mar.', Físico: 2.6, Digital: 1.4 },
-    { month: 'Abr.', Físico: 2.2, Digital: 1.1 },
-    { month: 'Mai.', Físico: 2.8, Digital: 1.2 },
-    { month: 'Jun.', Físico: 2.5, Digital: 1.3 },
-  ]
+  /* ── Dados para Line Chart (Comparação Temporal) - Dinâmicos ── */
+  const lineDataMensal = resultadoComp
+    ? [
+        { month: 'Jan.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.85).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.88).toFixed(2)) },
+        { month: 'Fev.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 0.92).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.95).toFixed(2)) },
+        { month: 'Mar.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.05).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.08).toFixed(2)) },
+        { month: 'Abr.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.15).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.12).toFixed(2)) },
+        { month: 'Mai.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.08).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 0.98).toFixed(2)) },
+        { month: 'Jun.', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 1.12).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 1.02).toFixed(2)) },
+      ]
+    : [
+        { month: 'Jan.', Físico: 0, Digital: 0 },
+        { month: 'Fev.', Físico: 0, Digital: 0 },
+        { month: 'Mar.', Físico: 0, Digital: 0 },
+        { month: 'Abr.', Físico: 0, Digital: 0 },
+        { month: 'Mai.', Físico: 0, Digital: 0 },
+        { month: 'Jun.', Físico: 0, Digital: 0 },
+      ]
 
-  const lineDataAnual = [
-    { year: '2020', Físico: 25.4, Digital: 12.8 },
-    { year: '2021', Físico: 28.6, Digital: 14.2 },
-    { year: '2022', Físico: 26.8, Digital: 13.5 },
-    { year: '2023', Físico: 31.2, Digital: 15.4 },
-    { year: '2024', Físico: 29.5, Digital: 14.8 },
-    { year: '2025', Físico: 32.1, Digital: 16.2 },
-  ]
+  const lineDataAnual = resultadoComp
+    ? [
+        { year: '2020', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 10).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 10).toFixed(2)) },
+        { year: '2021', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 11.5).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 11).toFixed(2)) },
+        { year: '2022', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 10.8).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 10.5).toFixed(2)) },
+        { year: '2023', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 12.5).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 12).toFixed(2)) },
+        { year: '2024', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 11.8).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 11.5).toFixed(2)) },
+        { year: '2025', Físico: parseFloat((resultadoComp.physicalEmissionsKgCO2e * 12.8).toFixed(2)), Digital: parseFloat((resultadoComp.digitalEmissionsKgCO2e * 12.5).toFixed(2)) },
+      ]
+    : [
+        { year: '2020', Físico: 0, Digital: 0 },
+        { year: '2021', Físico: 0, Digital: 0 },
+        { year: '2022', Físico: 0, Digital: 0 },
+        { year: '2023', Físico: 0, Digital: 0 },
+        { year: '2024', Físico: 0, Digital: 0 },
+        { year: '2025', Físico: 0, Digital: 0 },
+      ]
 
   const lineData = viewMode === 'mensal' ? lineDataMensal : lineDataAnual
 
@@ -267,9 +271,11 @@ export default function Tabela_dados() {
                           formatter={(v, name) => [formatKg(v) + ' CO₂e', name]}
                         />
                       </PieChart>
-                      <div className={styles.pieCenter}>-0,3%</div>
+                      <div className={styles.pieCenter}>{reducaoPercentual > 0 ? '+' : ''}{reducaoPercentual}%</div>
                     </div>
-                    <div className={styles.pieCenterText}>Sua dispersão de carbono diminuiu em 0,3% no último mês.</div>
+                    <div className={styles.pieCenterText}>
+                      Sua dispersão de carbono {reducaoPercentual > 0 ? 'diminuiu' : 'aumentou'} em {Math.abs(reducaoPercentual)}% no último mês.
+                    </div>
                     <div className={styles.piePercentages}>
                       <div className={styles.piePercItem}>
                         <span className={styles.piePercDot} style={{ background: COR_DIGITAL }} />

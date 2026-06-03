@@ -1,8 +1,14 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import styles from './Navbar.module.css'
 
 export default function Navbar() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    localStorage.removeItem('auth')
+    navigate('/login')
+  }
 
   return (
     <nav className={styles.navbar}>
@@ -23,6 +29,9 @@ export default function Navbar() {
         </Link>
         <a href="#">Suporte</a>
         <a href="#">Config</a>
+        <button onClick={handleLogout} className={styles.navbarLogout}>
+          Sair
+        </button>
       </div>
     </nav>
   )

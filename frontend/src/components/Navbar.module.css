@@ -45,6 +45,21 @@
   color: #f7faf7 !important;
 }
 
+.navbarLogout {
+  background: none;
+  border: none;
+  color: #f7faf7;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.navbarLogout:hover {
+  background: rgba(247, 250, 247, 0.15);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .navbar {
