@@ -33,7 +33,7 @@
   height: 260px;
   border-radius: 6px;
   overflow: hidden;
-  border: 2px solid #e53e14;
+  border: 2px solid #ff2d2d;
 }
 
 .previewImg {
@@ -50,7 +50,7 @@
 .btn {
   background: transparent;
   border: none;
-  color: #e53e14;
+  color: #ff2d2d;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -68,7 +68,7 @@
 }
 
 .erro {
-  color: #c0392b;
+  color: #ff2d2d;
   font-size: 0.8rem;
   max-width: 200px;
   text-align: center;

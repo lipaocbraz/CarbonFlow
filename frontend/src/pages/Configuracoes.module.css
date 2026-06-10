@@ -56,7 +56,7 @@
 }
 
 .toggle.toggleOn {
-  background: #8b0000;
+  background: #ff2d2d;
 }
 
 .toggleThumb {
@@ -66,7 +66,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #c0392b;
+  background: #ff2d2d;
   transition: left 0.25s, background 0.25s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
@@ -83,7 +83,7 @@
   width: 55%;
   height: 4px;
   border-radius: 2px;
-  background: #8b0000;
+  background: #ff2d2d;
   outline: none;
   cursor: pointer;
 }
@@ -94,20 +94,20 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #c0392b;
+  background: #ff2d2d;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .slider::-webkit-slider-thumb:hover {
-  background: #8b0000;
+  background: #ff2d2d;
 }
 
 .slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #c0392b;
+  background: #ff2d2d;
   cursor: pointer;
   border: none;
 }
@@ -123,7 +123,7 @@
   padding: 0.45rem 1rem;
   border-radius: 999px;
   border: none;
-  background: #c0392b;
+  background: #ff2d2d;
   color: #fff;
   font-size: 0.9rem;
   cursor: pointer;

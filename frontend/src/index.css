@@ -123,7 +123,7 @@ html.dark [class*="toggleBtn"]:not([class*="Active"]):hover {
 /* Botão de relatório outline */
 html.dark [class*="btnReport"] {
   background: #262626 !important;
-  color: #f72717 !important;
+  color: #800000 !important;
 }
 
 /* Tutorial */

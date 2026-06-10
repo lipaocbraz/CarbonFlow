@@ -39,9 +39,9 @@
 }
 
 .navbarLinkActive {
-  border: 1.5px solid #990b00;
+  border: 1.5px solid #ff2d2d;
   border-radius: 999px;
-  background: #990b00;
+  background: #ff2d2d;
   color: #f7faf7 !important;
 }
 
@@ -81,7 +81,7 @@
   }
 
   .navbarLinkActive {
-    border: 1px solid #990b00;
+    border: 1px solid #ff2d2d;
   }
 }
 

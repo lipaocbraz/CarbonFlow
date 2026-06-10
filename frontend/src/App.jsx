@@ -6,6 +6,7 @@ import Tabela_dados from './pages/Tabela_dados'
 import Suporte from './pages/Suporte'
 import Configuracoes from './pages/Configuracoes'
 import Relatorios from './pages/Relatorios'
+import Plano from './pages/Plano'
 import Tutorial from './pages/Tutorial'
 
 export default function App() {
@@ -40,6 +41,7 @@ export default function App() {
       <Route path="/configuracoes" element={isAuthenticated ? <Configuracoes /> : <Navigate to="/login" />} />
       <Route path="/relatorios-exportaveis" element={isAuthenticated ? <div /> : <Navigate to="/login" />} />
       <Route path="/relatorios" element={isAuthenticated ? <Relatorios /> : <Navigate to="/login" />} />
+      <Route path="/plano" element={isAuthenticated ? <Plano /> : <Navigate to="/login" />} />
       <Route path="/tutorial" element={isAuthenticated ? <Tutorial /> : <Navigate to="/login" />} />
       <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} />} />
     </Routes>

@@ -12,8 +12,12 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.DoubleStream;
 
 @Service
 public class ReportService {
@@ -63,10 +67,16 @@ public class ReportService {
             addAvoidedCarbon(document, result);
             addSpacer(document, 10f);
             addRecommendation(document, result);
+            addSpacer(document, 10f);
+            addPlanoDeAcao(document, result, request.getPeriods());
 
             if (request.getPeriods() != null && !request.getPeriods().isEmpty()) {
                 addSpacer(document, 10f);
                 addTemporalHistory(document, request.getPeriods());
+                addSpacer(document, 14f);
+                addImpactoPorAno(document, request.getPeriods());
+                addSpacer(document, 14f);
+                addGraficosMensais(document, request.getPeriods());
             }
 
             addSpacer(document, 24f);
@@ -353,6 +363,131 @@ public class ReportService {
         document.add(table);
     }
 
+    // ── Plano de Ação ─────────────────────────────────────────
+    private void addPlanoDeAcao(Document document, ComparisonResult result, List<PeriodData> periods) throws DocumentException {
+        addSectionTitle(document, "PLANO DE AÇÃO");
+
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100f);
+        table.setWidths(new float[]{1.6f, 2.6f, 2.6f, 1.4f});
+
+        String[] headers = {"Área", "Situação identificada", "Recomendações", "Redução estimada"};
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, new Font(Font.HELVETICA, 9, Font.BOLD, LIGHT)));
+            cell.setBackgroundColor(NAVY);
+            cell.setBorder(Rectangle.NO_BORDER);
+            cell.setBorderWidthBottom(2.5f);
+            cell.setBorderColorBottom(RED);
+            cell.setUseVariableBorders(true);
+            cell.setPadding(8f);
+            table.addCell(cell);
+        }
+
+        boolean alt = false;
+
+        // Linha 1: comparação Físico × Digital, sempre disponível
+        double avoided = result.getAvoidedCarbonKgCO2e();
+        double reducaoPct = result.getPhysicalEmissionsKgCO2e() > 0
+                ? (avoided / result.getPhysicalEmissionsKgCO2e()) * 100
+                : Double.NaN;
+
+        addPlanoRow(table,
+                "Comparação Físico × Digital",
+                String.format(Locale.US, "Físico: %dx %s (%s) · Digital: %dx %s (%s)",
+                        result.getPhysicalQuantity(), result.getPhysicalDescription(), formatarEmissoes(result.getPhysicalEmissionsKgCO2e()),
+                        result.getDigitalQuantity(), result.getDigitalDescription(), formatarEmissoes(result.getDigitalEmissionsKgCO2e())),
+                avoided >= 0
+                        ? String.format("Migrar de \"%s\" para \"%s\"", result.getPhysicalDescription(), result.getDigitalDescription())
+                        : String.format("Revisar os volumes da operação digital \"%s\"", result.getDigitalDescription()),
+                formatPct(Math.abs(reducaoPct)),
+                avoided >= 0 ? "de redução potencial no cenário digital" : "de aumento no cenário digital",
+                alt);
+        alt = !alt;
+
+        // Linhas baseadas no histórico de períodos, quando disponível
+        if (periods != null && !periods.isEmpty()) {
+            double totalFisico = 0, totalDigital = 0, totalEvitado = 0;
+            for (PeriodData p : periods) {
+                totalFisico  += p.getTotalPhysicalKgCO2e();
+                totalDigital += p.getTotalDigitalKgCO2e();
+                totalEvitado += p.getTotalAvoidedKgCO2e();
+            }
+
+            double pctEvitadoHist = (totalFisico + totalEvitado) > 0
+                    ? (totalEvitado / (totalFisico + totalEvitado)) * 100
+                    : Double.NaN;
+
+            addPlanoRow(table,
+                    String.format("Histórico acumulado (%d período%s)", periods.size(), periods.size() > 1 ? "s" : ""),
+                    String.format("Físico: %s · Digital: %s · Evitado: %s",
+                            formatarEmissoes(totalFisico), formatarEmissoes(totalDigital), formatarEmissoes(totalEvitado)),
+                    "Acompanhar a evolução mensal e priorizar os períodos com maior emissão física",
+                    formatPct(pctEvitadoHist),
+                    "de carbono evitado no período registrado",
+                    alt);
+            alt = !alt;
+
+            PeriodData pico = null;
+            for (PeriodData p : periods) {
+                if (pico == null || p.getTotalPhysicalKgCO2e() > pico.getTotalPhysicalKgCO2e()) {
+                    pico = p;
+                }
+            }
+
+            double picoPct = (pico.getTotalPhysicalKgCO2e() + pico.getTotalAvoidedKgCO2e()) > 0
+                    ? (pico.getTotalAvoidedKgCO2e() / (pico.getTotalPhysicalKgCO2e() + pico.getTotalAvoidedKgCO2e())) * 100
+                    : Double.NaN;
+
+            addPlanoRow(table,
+                    "Pico de emissão — " + pico.getPeriodLabel(),
+                    String.format("%s CO2e em %dx %s",
+                            formatarEmissoes(pico.getTotalPhysicalKgCO2e()), pico.getVezesNoMes(),
+                            pico.getPhysicalDescription() != null ? pico.getPhysicalDescription() : "operação física"),
+                    "Priorizar a digitalização das operações de " + pico.getPeriodLabel()
+                            + (pico.getDigitalDescription() != null ? " (ex: " + pico.getDigitalDescription() + ")" : ""),
+                    formatPct(picoPct),
+                    "de redução potencial nesse período",
+                    alt);
+        }
+
+        document.add(table);
+    }
+
+    /** Adiciona uma linha à tabela do Plano de Ação. */
+    private void addPlanoRow(PdfPTable table, String area, String situacao, String recomendacao,
+                              String reducao, String reducaoSub, boolean alt) {
+        Color bg = alt ? LIGHT_GRAY : new Color(255, 255, 255);
+        Font textFont = new Font(Font.HELVETICA, 9, Font.NORMAL, new Color(51, 51, 51));
+        Font areaFont = new Font(Font.HELVETICA, 9, Font.BOLD, NAVY);
+
+        addPlanoCell(table, new Phrase(area, areaFont), bg, Element.ALIGN_LEFT);
+        addPlanoCell(table, new Phrase(situacao, textFont), bg, Element.ALIGN_LEFT);
+        addPlanoCell(table, new Phrase(recomendacao, textFont), bg, Element.ALIGN_LEFT);
+
+        Paragraph reducaoPara = new Paragraph();
+        reducaoPara.setAlignment(Element.ALIGN_CENTER);
+        reducaoPara.add(new Chunk(reducao + "\n", new Font(Font.HELVETICA, 11, Font.BOLD, NAVY)));
+        reducaoPara.add(new Chunk(reducaoSub, new Font(Font.HELVETICA, 7, Font.NORMAL, new Color(136, 136, 136))));
+        addPlanoCell(table, reducaoPara, bg, Element.ALIGN_CENTER);
+    }
+
+    private void addPlanoCell(PdfPTable table, Element content, Color bg, int align) {
+        PdfPCell cell = new PdfPCell();
+        cell.addElement(content);
+        cell.setBackgroundColor(bg);
+        cell.setBorderColor(BORDER_GRAY);
+        cell.setBorderWidth(0.5f);
+        cell.setHorizontalAlignment(align);
+        cell.setPadding(8f);
+        table.addCell(cell);
+    }
+
+    /** Formata um percentual, retornando "—" se não for um número finito. */
+    private String formatPct(double pct) {
+        if (Double.isNaN(pct) || Double.isInfinite(pct)) return "—";
+        return String.format(Locale.US, "%.1f%%", pct);
+    }
+
     // ── Histórico por período ────────────────────────────────
     private void addTemporalHistory(Document document, List<PeriodData> periods) throws DocumentException {
         addSectionTitle(document, "HISTÓRICO POR PERÍODO");
@@ -409,6 +544,97 @@ public class ReportService {
         }
 
         document.add(table);
+    }
+
+    // ── Impacto por ano ───────────────────────────────────────
+    private void addImpactoPorAno(Document document, List<PeriodData> periods) throws DocumentException {
+        Map<String, double[]> porAno = new LinkedHashMap<>(); // ano -> [físico, digital, evitado]
+        for (PeriodData p : periods) {
+            String ano = extrairAno(p.getPeriodLabel());
+            double[] tot = porAno.computeIfAbsent(ano, k -> new double[3]);
+            tot[0] += p.getTotalPhysicalKgCO2e();
+            tot[1] += p.getTotalDigitalKgCO2e();
+            tot[2] += p.getTotalAvoidedKgCO2e();
+        }
+
+        if (porAno.size() < 2) return; // só faz sentido comparar quando há mais de um ano registrado
+
+        addSectionTitle(document, "IMPACTO POR ANO");
+
+        double max = porAno.values().stream()
+                .flatMapToDouble(v -> DoubleStream.of(v[0], v[1]))
+                .max().orElse(1);
+
+        for (Map.Entry<String, double[]> entry : porAno.entrySet()) {
+            double[] tot = entry.getValue();
+            Paragraph anoTitle = new Paragraph(entry.getKey(), new Font(Font.HELVETICA, 10, Font.BOLD, NAVY));
+            anoTitle.setSpacingBefore(8f);
+            anoTitle.setSpacingAfter(2f);
+            document.add(anoTitle);
+
+            addBar(document, "Físico: "  + formatarEmissoes(tot[0]), tot[0], max, RED);
+            addBar(document, "Digital: " + formatarEmissoes(tot[1]), tot[1], max, NAVY);
+            addBar(document, "Evitado: " + formatarEmissoes(tot[2]), tot[2], max, new Color(217, 217, 217));
+        }
+    }
+
+    // ── Gráficos mensais por ano ──────────────────────────────
+    private void addGraficosMensais(Document document, List<PeriodData> periods) throws DocumentException {
+        Map<String, List<PeriodData>> porAno = new LinkedHashMap<>();
+        for (PeriodData p : periods) {
+            porAno.computeIfAbsent(extrairAno(p.getPeriodLabel()), k -> new ArrayList<>()).add(p);
+        }
+
+        for (Map.Entry<String, List<PeriodData>> entry : porAno.entrySet()) {
+            addSectionTitle(document, "EMISSÕES MENSAIS — " + entry.getKey());
+
+            double max = entry.getValue().stream()
+                    .flatMapToDouble(p -> DoubleStream.of(p.getTotalPhysicalKgCO2e(), p.getTotalDigitalKgCO2e()))
+                    .max().orElse(1);
+
+            for (PeriodData p : entry.getValue()) {
+                Paragraph mesTitle = new Paragraph(p.getPeriodLabel(), new Font(Font.HELVETICA, 9, Font.BOLD, NAVY));
+                mesTitle.setSpacingBefore(6f);
+                mesTitle.setSpacingAfter(2f);
+                document.add(mesTitle);
+
+                addBar(document, "Físico: "  + formatarEmissoes(p.getTotalPhysicalKgCO2e()), p.getTotalPhysicalKgCO2e(), max, RED);
+                addBar(document, "Digital: " + formatarEmissoes(p.getTotalDigitalKgCO2e()),  p.getTotalDigitalKgCO2e(),  max, NAVY);
+            }
+
+            addSpacer(document, 10f);
+        }
+    }
+
+    /** Renderiza uma barra horizontal proporcional, no estilo dos gráficos do app. */
+    private void addBar(Document document, String label, double valor, double max, Color cor) throws DocumentException {
+        float frac = max > 0 ? (float) Math.min(Math.max(valor / max, 0.02), 1.0) : 0.02f;
+
+        PdfPTable row = new PdfPTable(2);
+        row.setWidthPercentage(100f);
+        row.setWidths(new float[]{ Math.max(frac * 78f, 1f), Math.max(100f - frac * 78f, 1f) });
+
+        PdfPCell barCell = new PdfPCell(new Phrase(" "));
+        barCell.setBackgroundColor(cor);
+        barCell.setBorder(Rectangle.NO_BORDER);
+        barCell.setFixedHeight(10f);
+        row.addCell(barCell);
+
+        PdfPCell labelCell = new PdfPCell(new Phrase(label, new Font(Font.HELVETICA, 8, Font.NORMAL, new Color(102, 102, 102))));
+        labelCell.setBorder(Rectangle.NO_BORDER);
+        labelCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        labelCell.setPaddingLeft(6f);
+        row.addCell(labelCell);
+
+        row.setSpacingAfter(3f);
+        document.add(row);
+    }
+
+    /** Extrai o ano de um rótulo de período no formato "Mês/AAAA". */
+    private String extrairAno(String periodLabel) {
+        if (periodLabel == null) return "—";
+        int idx = periodLabel.lastIndexOf('/');
+        return idx >= 0 ? periodLabel.substring(idx + 1) : periodLabel;
     }
 
     // ── Rodapé ───────────────────────────────────────────────
