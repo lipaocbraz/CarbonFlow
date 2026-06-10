@@ -380,6 +380,27 @@
   background: #c41e0d;
 }
 
+.btnPlanoAcao {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 12px 24px;
+  background: #ff2d2d;
+  color: #f7faf7;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnPlanoAcao:hover {
+  background: #c41e0d;
+}
+
 .resultadosTitle {
   font-size: 22px;
   font-weight: 700;

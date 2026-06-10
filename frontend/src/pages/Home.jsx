@@ -581,6 +581,13 @@ export default function Home() {
                     <div className={styles.resultNote}>{resultadoComp.avoidedCarbonKgCO2e.toFixed(8)} kg CO₂e (valor exato)</div>
                   </div>
                 )}
+
+                <button
+                  className={styles.btnPlanoAcao}
+                  onClick={() => navigate('/plano', { state: { resultado, resultadoComp, tipoProduto, peso, tipoTransacao } })}
+                >
+                  Ver plano de ação
+                </button>
               </>
             )}
           </div>
