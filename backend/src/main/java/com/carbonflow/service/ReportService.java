@@ -12,8 +12,12 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.DoubleStream;
 
 @Service
 public class ReportService {
@@ -67,6 +71,10 @@ public class ReportService {
             if (request.getPeriods() != null && !request.getPeriods().isEmpty()) {
                 addSpacer(document, 10f);
                 addTemporalHistory(document, request.getPeriods());
+                addSpacer(document, 14f);
+                addImpactoPorAno(document, request.getPeriods());
+                addSpacer(document, 14f);
+                addGraficosMensais(document, request.getPeriods());
             }
 
             addSpacer(document, 24f);
@@ -409,6 +417,97 @@ public class ReportService {
         }
 
         document.add(table);
+    }
+
+    // ── Impacto por ano ───────────────────────────────────────
+    private void addImpactoPorAno(Document document, List<PeriodData> periods) throws DocumentException {
+        Map<String, double[]> porAno = new LinkedHashMap<>(); // ano -> [físico, digital, evitado]
+        for (PeriodData p : periods) {
+            String ano = extrairAno(p.getPeriodLabel());
+            double[] tot = porAno.computeIfAbsent(ano, k -> new double[3]);
+            tot[0] += p.getTotalPhysicalKgCO2e();
+            tot[1] += p.getTotalDigitalKgCO2e();
+            tot[2] += p.getTotalAvoidedKgCO2e();
+        }
+
+        if (porAno.size() < 2) return; // só faz sentido comparar quando há mais de um ano registrado
+
+        addSectionTitle(document, "IMPACTO POR ANO");
+
+        double max = porAno.values().stream()
+                .flatMapToDouble(v -> DoubleStream.of(v[0], v[1]))
+                .max().orElse(1);
+
+        for (Map.Entry<String, double[]> entry : porAno.entrySet()) {
+            double[] tot = entry.getValue();
+            Paragraph anoTitle = new Paragraph(entry.getKey(), new Font(Font.HELVETICA, 10, Font.BOLD, NAVY));
+            anoTitle.setSpacingBefore(8f);
+            anoTitle.setSpacingAfter(2f);
+            document.add(anoTitle);
+
+            addBar(document, "Físico: "  + formatarEmissoes(tot[0]), tot[0], max, RED);
+            addBar(document, "Digital: " + formatarEmissoes(tot[1]), tot[1], max, NAVY);
+            addBar(document, "Evitado: " + formatarEmissoes(tot[2]), tot[2], max, new Color(217, 217, 217));
+        }
+    }
+
+    // ── Gráficos mensais por ano ──────────────────────────────
+    private void addGraficosMensais(Document document, List<PeriodData> periods) throws DocumentException {
+        Map<String, List<PeriodData>> porAno = new LinkedHashMap<>();
+        for (PeriodData p : periods) {
+            porAno.computeIfAbsent(extrairAno(p.getPeriodLabel()), k -> new ArrayList<>()).add(p);
+        }
+
+        for (Map.Entry<String, List<PeriodData>> entry : porAno.entrySet()) {
+            addSectionTitle(document, "EMISSÕES MENSAIS — " + entry.getKey());
+
+            double max = entry.getValue().stream()
+                    .flatMapToDouble(p -> DoubleStream.of(p.getTotalPhysicalKgCO2e(), p.getTotalDigitalKgCO2e()))
+                    .max().orElse(1);
+
+            for (PeriodData p : entry.getValue()) {
+                Paragraph mesTitle = new Paragraph(p.getPeriodLabel(), new Font(Font.HELVETICA, 9, Font.BOLD, NAVY));
+                mesTitle.setSpacingBefore(6f);
+                mesTitle.setSpacingAfter(2f);
+                document.add(mesTitle);
+
+                addBar(document, "Físico: "  + formatarEmissoes(p.getTotalPhysicalKgCO2e()), p.getTotalPhysicalKgCO2e(), max, RED);
+                addBar(document, "Digital: " + formatarEmissoes(p.getTotalDigitalKgCO2e()),  p.getTotalDigitalKgCO2e(),  max, NAVY);
+            }
+
+            addSpacer(document, 10f);
+        }
+    }
+
+    /** Renderiza uma barra horizontal proporcional, no estilo dos gráficos do app. */
+    private void addBar(Document document, String label, double valor, double max, Color cor) throws DocumentException {
+        float frac = max > 0 ? (float) Math.min(Math.max(valor / max, 0.02), 1.0) : 0.02f;
+
+        PdfPTable row = new PdfPTable(2);
+        row.setWidthPercentage(100f);
+        row.setWidths(new float[]{ Math.max(frac * 78f, 1f), Math.max(100f - frac * 78f, 1f) });
+
+        PdfPCell barCell = new PdfPCell(new Phrase(" "));
+        barCell.setBackgroundColor(cor);
+        barCell.setBorder(Rectangle.NO_BORDER);
+        barCell.setFixedHeight(10f);
+        row.addCell(barCell);
+
+        PdfPCell labelCell = new PdfPCell(new Phrase(label, new Font(Font.HELVETICA, 8, Font.NORMAL, new Color(102, 102, 102))));
+        labelCell.setBorder(Rectangle.NO_BORDER);
+        labelCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        labelCell.setPaddingLeft(6f);
+        row.addCell(labelCell);
+
+        row.setSpacingAfter(3f);
+        document.add(row);
+    }
+
+    /** Extrai o ano de um rótulo de período no formato "Mês/AAAA". */
+    private String extrairAno(String periodLabel) {
+        if (periodLabel == null) return "—";
+        int idx = periodLabel.lastIndexOf('/');
+        return idx >= 0 ? periodLabel.substring(idx + 1) : periodLabel;
     }
 
     // ── Rodapé ───────────────────────────────────────────────

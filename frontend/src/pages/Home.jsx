@@ -56,7 +56,7 @@ function calcularNivelImpacto(kg) {
   }
   return {
     nivel: 'Alto',
-    cor: '#f87171',
+    cor: '#ff2d2d',
     percentual: Math.min(70 + ((kg - 1) / 9) * 30, 100),
     mensagem: 'Esta operação tem impacto ambiental significativo. Considere alternativas digitais ou compensações de carbono para reduzir sua pegada ambiental.',
   }
@@ -116,7 +116,9 @@ export default function Home() {
 
   const operationType = tipoTransacao === 'fisico' ? operacaoFisica : operacaoDigital
   const transactionType = tipoTransacao === 'fisico' ? 'FISICO' : 'DIGITAL'
-  const temResultado = resultado !== null || resultadoComp !== null
+
+  const historicoSalvo = JSON.parse(localStorage.getItem('cf_history') || '[]')
+  const temResultado = resultado !== null || resultadoComp !== null || historicoSalvo.length > 0
 
   async function calcular() {
     setErro('')

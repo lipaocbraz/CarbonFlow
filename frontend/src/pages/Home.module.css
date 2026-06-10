@@ -42,7 +42,7 @@
 .cardTitle {
   font-size: 15px;
   font-weight: 500;
-  color: #f72717;
+  color: #fd8282;
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 0.5px solid #e0e0e0;
@@ -51,7 +51,7 @@
 .sectionLabel {
   font-size: 12px;
   font-weight: 500;
-  color: #f72717;
+  color: #fd8282;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 1.25rem 0 0.6rem;
@@ -95,7 +95,7 @@
 }
 
 .tab.active { background: #162056; border-color: #162056; color: #f7faf7; }
-.tab:hover:not(.active) { border-color: #ff5245; color: #f72717; }
+.tab:hover:not(.active) { border-color: #ff5245; color: #fd8282; }
 
 .btnCalc {
   width: 100%;
@@ -286,10 +286,10 @@
   margin-top: 1rem;
   padding: 1rem;
   background: #fff5f5;
-  border: 0.5px solid #e53935;
+  border: 0.5px solid #ff2d2d;
   border-radius: 8px;
   font-size: 13px;
-  color: #c62828;
+  color: #ff2d2d;
 }
 
 .compCard {
@@ -304,12 +304,12 @@
 .compColLabel {
   font-size: 12px;
   font-weight: 600;
-  color: #f72717;
+  color: #fd8282;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 0.6rem;
   padding-bottom: 4px;
-  border-bottom: 1.5px solid #f72717;
+  border-bottom: 1.5px solid #fd8282;
 }
 
 .compResultGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 0.75rem; }
@@ -366,7 +366,7 @@
 .btnRelatorio {
   display: block;
   padding: 12px 24px;
-  background: #f72717;
+  background: #ff2d2d;
   color: #f7faf7;
   border-radius: 8px;
   font-size: 14px;
@@ -383,7 +383,7 @@
 .resultadosTitle {
   font-size: 22px;
   font-weight: 700;
-  color: #f72717;
+  color: #fd8282;
   margin-bottom: 0.5rem;
 }
 
@@ -391,7 +391,7 @@
   display: block;
   font-size: 22px;
   font-weight: 700;
-  color: #f72717;
+  color: #fd8282;
   text-decoration: underline;
   margin-bottom: 0.75rem;
 }
@@ -413,8 +413,8 @@
   width: 100%;
   padding: 10px;
   background: #f7faf7;
-  color: #f72717;
-  border: 1.5px solid #f72717;
+  color: #ff2d2d;
+  border: 1.5px solid #ff2d2d;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
@@ -423,6 +423,6 @@
 }
 
 .btnReport:hover {
-  background: #f72717;
+  background: #ff2d2d;
   color: #f7faf7;
 }

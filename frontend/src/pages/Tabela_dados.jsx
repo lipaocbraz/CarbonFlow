@@ -8,7 +8,7 @@ import {
 import Navbar from '../components/Navbar'
 import styles from './Tabela_dados.module.css'
 
-const COR_FISICO  = '#990b00'
+const COR_FISICO  = '#ff2d2d'
 const COR_DIGITAL = '#162056'
 const COR_EVITADO = '#d9d9d9'
 
@@ -27,6 +27,46 @@ function loadHistory() {
   try { return JSON.parse(localStorage.getItem('cf_history') || '[]') } catch { return [] }
 }
 
+function getYear(h) {
+  if (h.period) return h.period.split('-')[0]
+  if (h.label) {
+    const parts = h.label.split('/')
+    return parts[parts.length - 1]
+  }
+  return ''
+}
+
+// Seleciona até n pontos: sempre o primeiro e o último, e os pontos
+// intermediários onde houve maior mudança de tendência (inflexões),
+// para destacar o que de fato variou ao longo do período registrado.
+function pickKeyPoints(arr, n = 5) {
+  if (arr.length <= n) return arr
+
+  const keys = ['Físico', 'Digital', 'Evitado']
+  const scores = arr.map((point, i) => {
+    if (i === 0 || i === arr.length - 1) return -1
+    let score = 0
+    for (const key of keys) {
+      const before = point[key] - arr[i - 1][key]
+      const after  = arr[i + 1][key] - point[key]
+      score += Math.abs(after - before)
+    }
+    return score
+  })
+
+  const middleCount = n - 2
+  const middleIndices = scores
+    .map((score, i) => [score, i])
+    .filter(([, i]) => i !== 0 && i !== arr.length - 1)
+    .sort((a, b) => b[0] - a[0])
+    .slice(0, middleCount)
+    .map(([, i]) => i)
+    .sort((a, b) => a - b)
+
+  const indices = [0, ...middleIndices, arr.length - 1]
+  return indices.map(i => arr[i])
+}
+
 export default function Tabela_dados() {
   const location = useLocation()
   const ls = location.state || {}
@@ -39,8 +79,6 @@ export default function Tabela_dados() {
   const tipoProduto   = ls.tipoProduto   ?? h1Stored?.tipoProduto   ?? ''
   const peso          = ls.peso          ?? h1Stored?.peso          ?? ''
   const tipoTransacao = ls.tipoTransacao ?? h1Stored?.tipoTransacao ?? 'fisico'
-
-  const [viewMode, setViewMode] = useState('mensal')
 
   const history = loadHistory()
 
@@ -69,31 +107,49 @@ export default function Tabela_dados() {
         : '-0.3')
     : '-0.3'
 
-  /* ── Bar chart: mensal = resultado atual, anual = histórico ── */
+  /* ── Bar chart: mensal (filtrado por ano selecionado) ── */
   const barDataMensal = resultadoComp
     ? [{ name: 'Operação', Físico: parseFloat(resultadoComp.physicalEmissionsKgCO2e.toFixed(6)), Digital: parseFloat(resultadoComp.digitalEmissionsKgCO2e.toFixed(6)) }]
     : resultado
     ? [{ name: resultado.description, Físico: parseFloat(resultado.emissionsKgCO2e.toFixed(6)), Digital: 0 }]
     : []
 
-  const barDataAnual = history.length > 0
-    ? history.map(h => ({
-        name: h.label,
-        Físico:  parseFloat(h.totalPhysicalKgCO2e.toFixed(6)),
-        Digital: parseFloat(h.totalDigitalKgCO2e.toFixed(6)),
-      }))
-    : barDataMensal
+  const availableYears = [...new Set(history.map(getYear))].filter(Boolean).sort((a, b) => b.localeCompare(a))
 
-  const barData = viewMode === 'mensal' ? barDataMensal : barDataAnual
+  const [selectedYear, setSelectedYear] = useState(null)
+  const currentYear = selectedYear ?? availableYears[0] ?? ''
 
-  /* ── Line chart: evolução temporal real ── */
+  const barDataMensalAno = history
+    .filter(h => getYear(h) === currentYear)
+    .map(h => ({
+      name: h.label,
+      Físico:  parseFloat(h.totalPhysicalKgCO2e.toFixed(6)),
+      Digital: parseFloat(h.totalDigitalKgCO2e.toFixed(6)),
+    }))
+
+  const barData = barDataMensalAno.length > 0 ? barDataMensalAno : barDataMensal
+
+  /* ── Pontos por ano: emissão de carbono atual ── */
+  const barDataPorAno = Object.values(
+    history.reduce((acc, h) => {
+      const ano = getYear(h)
+      if (!acc[ano]) acc[ano] = { name: ano, Físico: 0, Digital: 0 }
+      acc[ano].Físico  += h.totalPhysicalKgCO2e
+      acc[ano].Digital += h.totalDigitalKgCO2e
+      return acc
+    }, {})
+  )
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(a => ({ ...a, Físico: parseFloat(a.Físico.toFixed(6)), Digital: parseFloat(a.Digital.toFixed(6)) }))
+
+  /* ── Line chart: evolução temporal (5 pontos de maior mudança no histórico) ── */
   const lineDataTemporal = history.length > 1
-    ? history.map(h => ({
+    ? pickKeyPoints(history.map(h => ({
         label: h.label,
         Físico:  parseFloat(h.totalPhysicalKgCO2e.toFixed(6)),
         Digital: parseFloat(h.totalDigitalKgCO2e.toFixed(6)),
         Evitado: parseFloat(h.totalAvoidedKgCO2e.toFixed(6)),
-      }))
+      })), 5)
     : null  // null = mostrar mensagem ou usar fallback
 
   // Fallback quando não há histórico suficiente
@@ -233,24 +289,21 @@ export default function Tabela_dados() {
                 )}
               </div>
 
-              {/* Bar — Mensal / Por período */}
+              {/* Bar — Mensal (filtrado por ano) */}
               <div className={styles.chartCard}>
                 <div className={styles.chartHeaderWithToggle}>
-                  <span className={styles.chartLabelPill}>Emissão de carbono</span>
-                  <div className={styles.toggleGroup}>
-                    <button
-                      className={`${styles.toggleBtn} ${viewMode === 'mensal' ? styles.toggleBtnActive : ''}`}
-                      onClick={() => setViewMode('mensal')}
+                  <span className={styles.chartLabelPill}>Emissão de carbono mensal</span>
+                  {availableYears.length > 0 && (
+                    <select
+                      className={styles.yearSelect}
+                      value={currentYear}
+                      onChange={e => setSelectedYear(e.target.value)}
                     >
-                      Atual
-                    </button>
-                    <button
-                      className={`${styles.toggleBtn} ${viewMode === 'anual' ? styles.toggleBtnActive : ''}`}
-                      onClick={() => setViewMode('anual')}
-                    >
-                      Por período
-                    </button>
-                  </div>
+                      {availableYears.map(ano => (
+                        <option key={ano} value={ano}>{ano}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 {barData.length === 0 ? (
                   <p className={styles.semDados}>Sem dados de cálculo.</p>
@@ -266,6 +319,30 @@ export default function Tabela_dados() {
                         <Bar dataKey="Físico"  barSize={32} fill={COR_FISICO}  />
                         <Bar dataKey="Digital" barSize={32} fill={COR_DIGITAL} />
                       </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              {/* Line — Emissão de carbono atual (pontos por ano) */}
+              <div className={styles.chartCard}>
+                <div className={styles.chartHeaderWithToggle}>
+                  <span className={styles.chartLabelPill}>Emissão de carbono atual</span>
+                </div>
+                {barDataPorAno.length === 0 ? (
+                  <p className={styles.semDados}>Sem dados de cálculo.</p>
+                ) : (
+                  <div className={styles.chartContainer}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={barDataPorAno} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis width={70} tick={{ fontSize: 11 }} tickFormatter={v => formatKg(v)} />
+                        <Tooltip formatter={(v, name) => [formatKg(v) + ' CO₂e', name]} />
+                        <Legend />
+                        <Line type="monotone" dataKey="Físico"  stroke={COR_FISICO}  strokeWidth={2} dot={{ r: 4 }} />
+                        <Line type="monotone" dataKey="Digital" stroke={COR_DIGITAL} strokeWidth={2} dot={{ r: 4 }} />
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 )}

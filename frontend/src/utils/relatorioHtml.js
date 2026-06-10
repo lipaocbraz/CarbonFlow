@@ -87,7 +87,7 @@ export function gerarHtmlRelatorio(dados) {
   const avoidedLabel =
     dados.avoidedCarbonKgCO2e >= 0 ? 'Carbono potencialmente evitado' : 'Carbono adicional no cenário digital'
 
-  const avoidedColor = dados.avoidedCarbonKgCO2e >= 0 ? '#f72717' : '#b71c1c'
+  const avoidedColor = dados.avoidedCarbonKgCO2e >= 0 ? '#ff2d2d' : '#b71c1c'
 
   const resumoExecutivo = gerarResumoExecutivo(dados)
 
@@ -126,7 +126,7 @@ export function gerarHtmlRelatorio(dados) {
       font-weight: 700;
       letter-spacing: -0.3px;
     }
-    .header-logo span { color: #f72717; }
+    .header-logo span { color: #fd8282; }
     .header-subtitle {
       color: rgba(247, 250, 247, 0.75);
       font-size: 12px;
@@ -136,7 +136,7 @@ export function gerarHtmlRelatorio(dados) {
     .header-right { text-align: right; }
     .header-badge {
       display: inline-block;
-      background: #f72717;
+      background: #ff2d2d;
       color: #ffffff;
       font-size: 11px;
       font-weight: 700;
@@ -152,7 +152,7 @@ export function gerarHtmlRelatorio(dados) {
     }
 
     /* ── Accent bar ────────────────────────────────── */
-    .accent-bar { height: 4px; background: #f72717; }
+    .accent-bar { height: 4px; background: #ff2d2d; }
 
     /* ── Content ───────────────────────────────────── */
     .content { padding: 36px 40px; max-width: 860px; margin: 0 auto; }
@@ -162,12 +162,12 @@ export function gerarHtmlRelatorio(dados) {
     .section-title {
       font-size: 11px;
       font-weight: 700;
-      color: #f72717;
+      color: #fd8282;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       margin-bottom: 12px;
       padding-bottom: 6px;
-      border-bottom: 1.5px solid #f72717;
+      border-bottom: 1.5px solid #fd8282;
     }
 
     /* ── Executive summary ─────────────────────────── */
@@ -310,7 +310,7 @@ export function gerarHtmlRelatorio(dados) {
       font-size: 12px;
       font-weight: 500;
     }
-    .footer-brand span { color: #f72717; }
+    .footer-brand span { color: #fd8282; }
     .footer-note {
       color: rgba(247, 250, 247, 0.6);
       font-size: 11px;
@@ -324,7 +324,7 @@ export function gerarHtmlRelatorio(dados) {
       padding: 10px 28px;
       background: #162056;
       color: #f7faf7;
-      border: 1.5px solid #f72717;
+      border: 1.5px solid #ff2d2d;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 500;
@@ -372,7 +372,7 @@ export function gerarHtmlRelatorio(dados) {
     <div class="metrics-row">
       <div class="metric-card">
         <div class="metric-label">Emissões — Físico</div>
-        <div class="metric-value" style="color: #c62828;">${formatarEmissoes(dados.physicalEmissionsKgCO2e)}</div>
+        <div class="metric-value" style="color: #ff2d2d;">${formatarEmissoes(dados.physicalEmissionsKgCO2e)}</div>
         <div class="metric-desc">${dados.physicalQuantity} unidade(s) · ${dados.physicalDescription}</div>
       </div>
       <div class="metric-card">
