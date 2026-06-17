@@ -1,17 +1,50 @@
 .page {
   min-height: calc(100vh - 56px);
-  background: #fff;
+  background: #f7faf7;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding: 2rem 1rem;
 }
 
 .container {
   width: 100%;
-  max-width: 680px;
-  padding: 2rem 1.5rem;
+  max-width: 720px;
 }
 
+/* ── Tabs ── */
+.tabBar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.tabBtn {
+  padding: 0.55rem 1.5rem;
+  border-radius: 999px;
+  border: none;
+  background: #e0e0e0;
+  color: #1a1a2e;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tabBtn:hover {
+  background: #d0d0d0;
+}
+
+.tabBtnActive {
+  background: #ff2d2d;
+  color: #fff;
+}
+
+.tabBtnActive:hover {
+  background: #cc2020;
+}
+
+/* ── Acessibilidade ── */
 .title {
   font-size: 1.8rem;
   font-weight: 500;
@@ -42,7 +75,6 @@
   font-weight: 400;
 }
 
-/* Toggle */
 .toggle {
   width: 52px;
   height: 28px;
@@ -76,7 +108,6 @@
   background: #fff;
 }
 
-/* Slider */
 .slider {
   -webkit-appearance: none;
   appearance: none;
@@ -96,11 +127,6 @@
   border-radius: 50%;
   background: #ff2d2d;
   cursor: pointer;
-  transition: background 0.15s;
-}
-
-.slider::-webkit-slider-thumb:hover {
-  background: #ff2d2d;
 }
 
 .slider::-moz-range-thumb {
@@ -112,7 +138,6 @@
   border: none;
 }
 
-/* Idioma buttons */
 .idiomaGroup {
   display: flex;
   gap: 0.5rem;
@@ -139,10 +164,186 @@
   background: #7b0d0d;
 }
 
-.idiomaBtn.idiomaBtnActive:hover {
-  background: #5e0a0a;
+/* ── Ajuste ── */
+.ajusteContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
 }
 
+.ajusteSection {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.ajusteSectionHeader {
+  background: #162056;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.85rem 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+/* Dados da empresa */
+.empresaGrid {
+  background: #fff;
+  padding: 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.empresaFieldFull {
+  grid-column: 1 / -1;
+}
+
+.empresaField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.empresaLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #162056;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.empresaInput {
+  padding: 0.6rem 0.9rem;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1a1a2e;
+  background: #f7faf7;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.empresaInput:focus {
+  border-color: #ff2d2d;
+}
+
+/* Fatores de emissão */
+.tabelaWrapper {
+  background: #fff;
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabela thead tr {
+  background: #f0f0f0;
+}
+
+.tabela th {
+  text-align: left;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  color: #162056;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tabela td {
+  padding: 0.65rem 1.25rem;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+}
+
+.tabela tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabela tbody tr:hover {
+  background: #fafafa;
+}
+
+.tipoBadge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: #ffecec;
+  color: #c0392b;
+}
+
+.tipoBadgeDigital {
+  background: #e8edf7;
+  color: #162056;
+}
+
+.tabelaValor {
+  font-weight: 600;
+  color: #162056;
+  white-space: nowrap;
+}
+
+/* Usuários e permissões */
+.usuariosList {
+  background: #fff;
+  padding: 0.5rem 0;
+}
+
+.usuarioItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s;
+}
+
+.usuarioItem:last-child {
+  border-bottom: none;
+}
+
+.usuarioItem:hover {
+  background: #fafafa;
+}
+
+.usuarioAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #162056;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.usuarioInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.usuarioNome {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.usuarioCargo {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* ── Responsivo ── */
 @media (max-width: 520px) {
   .optionRow {
     flex-direction: column;
@@ -158,5 +359,13 @@
   .idiomaGroup {
     width: 100%;
     justify-content: center;
+  }
+
+  .empresaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .empresaFieldFull {
+    grid-column: 1;
   }
 }
