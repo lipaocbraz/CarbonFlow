@@ -9,7 +9,6 @@ const MESES_SHORT  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out
 const ANO_ATUAL = new Date().getFullYear()
 const ANOS = [ANO_ATUAL - 1, ANO_ATUAL, ANO_ATUAL + 1]
 
-<<<<<<< HEAD
 const CATEGORIAS_OPERACAO = [
   { value: 'VOUCHER', label: 'Voucher' },
   { value: 'CARTAO', label: 'Cartão de benefício' },
@@ -17,8 +16,7 @@ const CATEGORIAS_OPERACAO = [
   { value: 'CORRESPONDENCIA', label: 'Correspondência / Transação' },
 ]
 
-=======
->>>>>>> 182f8f816a340d83b3d218a78c4be5f5041f5eab
+
 function salvarHistorico(entry) {
   const prev = JSON.parse(localStorage.getItem('cf_history') || '[]')
   const updated = [...prev.filter(e => e.period !== entry.period), entry]
@@ -103,7 +101,6 @@ function gerarComparacoes(kg) {
 
 export default function Home() {
   const navigate = useNavigate()
-<<<<<<< HEAD
 
   // --- História 1: Entrada de dados por período ---
   const [catPeriodo, setCatPeriodo] = useState('')
@@ -158,8 +155,7 @@ export default function Home() {
   }
 
   // --- Calculadora por operação ---
-=======
->>>>>>> 182f8f816a340d83b3d218a78c4be5f5041f5eab
+
   const [tipoProduto, setTipoProduto] = useState('')
   const [quantidade, setQuantidade] = useState(1)
   const [peso, setPeso] = useState('')
@@ -596,26 +592,10 @@ export default function Home() {
                   </div>
                   <div className={styles.field}>
                     <label>Vezes que a operação ocorre no mês</label>
-<<<<<<< HEAD
                     <input type="number" min="1" value={vezesNoMes} onChange={e => setVezesNoMes(e.target.value)} />
                   </div>
 
                   <button className={styles.btnCalc} onClick={comparar} disabled={carregandoComp}>
-=======
-                    <input
-                      type="number"
-                      min="1"
-                      value={vezesNoMes}
-                      onChange={e => setVezesNoMes(e.target.value)}
-                    />
-                  </div>
-
-                  <button
-                    className={styles.btnCalc}
-                    onClick={comparar}
-                    disabled={carregandoComp}
-                  >
->>>>>>> 182f8f816a340d83b3d218a78c4be5f5041f5eab
                     {carregandoComp ? 'Comparando...' : 'Comparar emissões'}
                   </button>
 
@@ -625,20 +605,9 @@ export default function Home() {
             )}
 
             {temResultado && (
-<<<<<<< HEAD
               <button className={styles.btnRelatorio} onClick={() => navigate('/relatorios')}>
                 Ver relatório
               </button>
-=======
-              <>
-                <button
-                  className={styles.btnRelatorio}
-                  onClick={() => navigate('/relatorios')}
-                >
-                  Ver relatório
-                </button>
-              </>
->>>>>>> 182f8f816a340d83b3d218a78c4be5f5041f5eab
             )}
           </div>
 
