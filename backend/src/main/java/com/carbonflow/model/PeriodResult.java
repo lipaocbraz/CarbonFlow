@@ -21,7 +21,8 @@ public class PeriodResult {
             String physicalDescription,
             String digitalDescription,
             double physicalEmissionsKgCO2e,
-            double digitalEmissionsKgCO2e
+            double digitalEmissionsKgCO2e,
+            double avoidedCarbonKgCO2e
     ) {
         this.operationCategory = operationCategory;
         this.operationLabel = operationLabel;
@@ -32,7 +33,7 @@ public class PeriodResult {
         this.digitalDescription = digitalDescription;
         this.physicalEmissionsKgCO2e = physicalEmissionsKgCO2e;
         this.digitalEmissionsKgCO2e = digitalEmissionsKgCO2e;
-        this.avoidedCarbonKgCO2e = physicalEmissionsKgCO2e - digitalEmissionsKgCO2e;
+        this.avoidedCarbonKgCO2e = avoidedCarbonKgCO2e;
     }
 
     public String getOperationCategory() { return operationCategory; }

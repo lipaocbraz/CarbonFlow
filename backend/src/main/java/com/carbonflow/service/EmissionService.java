@@ -129,6 +129,11 @@ public class EmissionService {
         double physicalEmissions = physicalFactor * request.getPhysicalQuantity();
         double digitalEmissions = digitalFactor * request.getDigitalQuantity();
 
+        // Carbono evitado: comparando com o cenário onde TUDO seria físico
+        double totalIfAllPhysical = physicalFactor * (request.getPhysicalQuantity() + request.getDigitalQuantity());
+        double actualEmissions = physicalEmissions + digitalEmissions;
+        double avoidedCarbon = totalIfAllPhysical - actualEmissions;
+
         return new PeriodResult(
                 category.name(),
                 category.getLabel(),
@@ -138,7 +143,8 @@ public class EmissionService {
                 physicalDescription,
                 digitalDescription,
                 physicalEmissions,
-                digitalEmissions
+                digitalEmissions,
+                avoidedCarbon
         );
     }
 }
