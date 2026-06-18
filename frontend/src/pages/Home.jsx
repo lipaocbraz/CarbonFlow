@@ -396,7 +396,7 @@ export default function Home() {
                 const totalKg = physKg + digKg
                 const avoidedKg = resultadoPeriodo.avoidedCarbonKgCO2e
                 const physPct = totalKg > 0 ? (physKg / totalKg * 100) : 50
-                const pctSaved = physKg > 0 ? Math.abs((physKg - digKg) / physKg * 100) : 0
+                const pctSaved = totalKg > 0 ? (avoidedKg / totalKg * 100) : 0
                 return (
                   <div className={styles.indicadoresCard}>
                     <div className={styles.indicadoresHeader}>
@@ -412,7 +412,7 @@ export default function Home() {
                         <div className={styles.indicadoresDonut} style={{ '--phys-pct': `${physPct}%` }} />
                         <div className={styles.indicadoresDonutCenter}>
                           <span className={styles.indicadoresDonutValue} style={{ color: avoidedKg >= 0 ? '#4ade80' : '#f87171' }}>
-                            {avoidedKg >= 0 ? '-' : '+'}{pctSaved.toFixed(1)}%
+                            {pctSaved.toFixed(1)}%
                           </span>
                         </div>
                       </div>
