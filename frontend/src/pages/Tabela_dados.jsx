@@ -102,10 +102,10 @@ export default function Tabela_dados() {
     ?? (tipoTransacao === 'digital' ? resultado?.emissionsKgCO2e : null)
 
   const reducaoPercentual = resultadoComp
-    ? (resultadoComp.physicalEmissionsKgCO2e > 0
-        ? ((resultadoComp.avoidedCarbonKgCO2e / resultadoComp.physicalEmissionsKgCO2e) * 100).toFixed(1)
-        : '-0.3')
-    : '-0.3'
+    ? ((resultadoComp.physicalEmissionsKgCO2e + resultadoComp.digitalEmissionsKgCO2e) > 0
+        ? ((resultadoComp.avoidedCarbonKgCO2e / (resultadoComp.physicalEmissionsKgCO2e + resultadoComp.digitalEmissionsKgCO2e)) * 100).toFixed(1)
+        : '0')
+    : '0'
 
   /* ── Bar chart: mensal (filtrado por ano selecionado) ── */
   const barDataMensal = resultadoComp
