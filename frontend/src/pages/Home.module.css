@@ -30,20 +30,114 @@
 
 .navbarLinks a:hover { background: rgba(247,250,247,0.15); color: #f7faf7; }
 
-.main { padding: 2rem; background: #f7faf7; min-height: calc(100vh - 56px); }
+.main {
+  background: #f7faf7;
+  min-height: calc(100vh - 56px);
+  padding: 1.5rem 2rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.leftCol { display: flex; flex-direction: column; gap: 1rem; }
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.resultadosTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fd8282;
+  text-align: center;
+  padding: 0.75rem 0;
+}
+
+.resultadosTitleLink {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fd8282;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  padding: 0.75rem 0;
+  transition: color 0.15s;
+}
+
+.resultadosTitleLink:hover { color: #ff2d2d; }
+
+.semCalculo {
+  font-size: 14px;
+  color: rgba(22,32,86,0.45);
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.btnAdicionar {
+  width: 100%;
+  padding: 10px 16px;
+  background: #e8e8e8;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.btnAdicionar:hover { background: #d8d8d8; }
+
+.formContent { display: flex; flex-direction: column; gap: 1rem; }
+
+.btnRelatorio {
+  width: 100%;
+  padding: 12px;
+  background: #ff2d2d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnRelatorio:hover { background: #d42020; }
+
+.btnPlanoAcao {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 10px;
+  background: #162056;
+  color: #f7faf7;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnPlanoAcao:hover { background: #0f1840; }
 
 .card {
-  background: #f7faf7;
+  background: #fff;
   border: 0.5px solid #d0d0d0;
   border-radius: 12px;
   padding: 1.5rem;
-  max-width: 680px;
-  margin: 0 auto;
 }
 
 .cardTitle {
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   color: #fd8282;
   margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
@@ -52,7 +146,7 @@
 
 .sectionLabel {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: #fd8282;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -70,7 +164,7 @@
   padding: 8px 12px;
   font-size: 14px;
   color: #162056;
-  background: #f7faf7;
+  background: #fff;
   outline: none;
   transition: border-color 0.15s;
   box-sizing: border-box;
@@ -223,12 +317,10 @@
 }
 
 .compCard {
-  background: #f7faf7;
+  background: #fff;
   border: 0.5px solid #d0d0d0;
   border-radius: 12px;
   padding: 1.5rem;
-  max-width: 680px;
-  margin: 1.5rem auto 0;
 }
 
 .compCols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 0.5rem; }
@@ -247,8 +339,6 @@
 .compResultGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 0.75rem; }
 
 .avoidedValue { font-size: 28px; font-weight: 700; color: #f7faf7; margin-top: 4px; }
-
-/* ── Validação de campos (História 1) ── */
 
 .fieldInvalido input, .fieldInvalido select {
   border-color: #f72717;
@@ -272,204 +362,4 @@
   font-size: 11px;
   color: #4ade80;
   margin-top: 4px;
-}
-
-/* ── Resultado por período ── */
-
-.periodoResultGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 0.75rem;
-}
-
-.periodoResultCol { display: flex; flex-direction: column; gap: 2px; }
-
-/* ── Indicadores Gerais result (Figma) ── */
-
-.indicadoresCard {
-  margin-top: 1rem;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 0.5px solid #d0d0d0;
-}
-
-.indicadoresHeader {
-  background: #162056;
-  padding: 1rem 1.25rem;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.indicadoresHeaderLabel {
-  font-size: 10px;
-  color: rgba(247,250,247,0.6);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 4px;
-}
-
-.indicadoresHeaderTotal {
-  font-size: 22px;
-  font-weight: 700;
-  color: #f7faf7;
-  line-height: 1.2;
-}
-
-.indicadoresHeaderOp {
-  font-size: 11px;
-  color: rgba(247,250,247,0.55);
-  margin-top: 4px;
-}
-
-.indicadoresPeriodoBadge {
-  background: rgba(247,250,247,0.1);
-  color: #f7faf7;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 0.5px solid rgba(247,250,247,0.2);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.indicadoresChartSection {
-  background: #f7faf7;
-  padding: 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.indicadoresDonutWrapper {
-  position: relative;
-  flex-shrink: 0;
-  width: 120px;
-  height: 120px;
-}
-
-.indicadoresDonut {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: conic-gradient(#162056 0% var(--phys-pct), #f72717 var(--phys-pct) 100%);
-  -webkit-mask: radial-gradient(transparent 44%, black 45%);
-  mask: radial-gradient(transparent 44%, black 45%);
-}
-
-.indicadoresDonutCenter {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.indicadoresDonutValue {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.indicadoresChartInfo { flex: 1; min-width: 0; }
-
-.indicadoresLegend { display: flex; gap: 1rem; margin-bottom: 0.6rem; }
-
-.indicadoresLegendItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #162056;
-}
-
-.indicadoresLegendDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.indicadoresDesc {
-  font-size: 13px;
-  color: #162056;
-  line-height: 1.5;
-  margin: 0;
-  opacity: 0.8;
-}
-
-.indicadoresStats {
-  background: #f7faf7;
-  padding: 0.75rem 1.25rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  border-top: 0.5px solid #e8e8e8;
-}
-
-.indicadoresStat {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.indicadoresStatDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-top: 3px;
-  flex-shrink: 0;
-}
-
-.indicadoresStatLabel {
-  font-size: 10px;
-  color: rgba(22,32,86,0.55);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.indicadoresStatDesc {
-  font-size: 11px;
-  color: rgba(22,32,86,0.6);
-  margin-top: 1px;
-}
-
-.indicadoresStatValue {
-  font-size: 16px;
-  font-weight: 700;
-  color: #162056;
-  margin-top: 3px;
-}
-
-.indicadoresAvoidedRow {
-  background: #162056;
-  padding: 0.75rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.indicadoresAvoidedLabel {
-  font-size: 11px;
-  color: rgba(247,250,247,0.6);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.indicadoresAvoidedValue {
-  font-size: 20px;
-  font-weight: 700;
-  text-align: right;
-}
-
-.indicadoresAvoidedNote {
-  font-size: 10px;
-  color: rgba(247,250,247,0.4);
-  text-align: right;
-  margin-top: 1px;
 }

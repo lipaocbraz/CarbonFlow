@@ -31,11 +31,21 @@ public class TransactionRequest {
         this.operationType = operationType; 
     }
 
-    public Long getQuantity(){ 
-        return quantity; 
+    public Long getQuantity(){
+        return quantity;
     }
 
-    public void setQuantity(Long quantity){ 
-        this.quantity = quantity; 
+    public void setQuantity(Long quantity){
+        this.quantity = quantity;
+    }
+
+    private Double weightKg;
+
+    public Double getWeightKg() {
+        return weightKg;
+    }
+
+    public void setWeightKg(Double weightKg) {
+        this.weightKg = weightKg;
     }
 }

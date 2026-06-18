@@ -9,14 +9,6 @@ const MESES_SHORT  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out
 const ANO_ATUAL = new Date().getFullYear()
 const ANOS = [ANO_ATUAL - 1, ANO_ATUAL, ANO_ATUAL + 1]
 
-const CATEGORIAS_OPERACAO = [
-  { value: 'VOUCHER', label: 'Voucher' },
-  { value: 'CARTAO', label: 'Cartão de benefício' },
-  { value: 'EXTRATO', label: 'Extrato' },
-  { value: 'CORRESPONDENCIA', label: 'Correspondência / Transação' },
-]
-
-
 function salvarHistorico(entry) {
   const prev = JSON.parse(localStorage.getItem('cf_history') || '[]')
   const updated = [...prev.filter(e => e.period !== entry.period), entry]
@@ -42,11 +34,6 @@ function formatarEmissoes(kgCO2e) {
   if (kgCO2e >= 1) return kgCO2e.toFixed(4) + ' kg CO₂e'
   if (kgCO2e >= 0.001) return (kgCO2e * 1000).toFixed(4) + ' g CO₂e'
   return (kgCO2e * 1000000).toFixed(2) + ' mg CO₂e'
-}
-
-function formatarPeriodo(periodo) {
-  const [ano, mes] = periodo.split('-')
-  return `${MESES_LABELS[parseInt(mes, 10) - 1]}/${ano}`
 }
 
 function calcularNivelImpacto(kg) {
@@ -102,58 +89,6 @@ function gerarComparacoes(kg) {
 export default function Home() {
   const navigate = useNavigate()
 
-  // --- História 1: Entrada de dados por período ---
-  const [catPeriodo, setCatPeriodo] = useState('')
-  const [qtdFisicaPeriodo, setQtdFisicaPeriodo] = useState('')
-  const [qtdDigitalPeriodo, setQtdDigitalPeriodo] = useState('')
-  const [periodo, setPeriodo] = useState('')
-  const [resultadoPeriodo, setResultadoPeriodo] = useState(null)
-  const [erroPeriodo, setErroPeriodo] = useState('')
-  const [carregandoPeriodo, setCarregandoPeriodo] = useState(false)
-  const [tocados, setTocados] = useState({})
-
-  const errosCampos = {
-    catPeriodo: !catPeriodo ? 'Selecione o tipo de operação.' : null,
-    qtdFisicaPeriodo: qtdFisicaPeriodo === ''
-      ? 'Informe o número de transações físicas.'
-      : Number(qtdFisicaPeriodo) < 0 ? 'Valor deve ser zero ou maior.' : null,
-    qtdDigitalPeriodo: qtdDigitalPeriodo === ''
-      ? 'Informe o número de transações digitais.'
-      : Number(qtdDigitalPeriodo) < 0 ? 'Valor deve ser zero ou maior.' : null,
-    periodo: !periodo ? 'Selecione o período.' : null,
-  }
-  const formularioPeriodoValido = Object.values(errosCampos).every(v => v === null)
-
-  function touch(campo) {
-    setTocados(t => ({ ...t, [campo]: true }))
-  }
-
-  function fieldState(campo) {
-    if (!tocados[campo]) return styles.field
-    return errosCampos[campo] ? `${styles.field} ${styles.fieldInvalido}` : `${styles.field} ${styles.fieldValido}`
-  }
-
-  async function calcularPeriodo() {
-    setTocados({ catPeriodo: true, qtdFisicaPeriodo: true, qtdDigitalPeriodo: true, periodo: true })
-    if (!formularioPeriodoValido) return
-    setErroPeriodo('')
-    setResultadoPeriodo(null)
-    setCarregandoPeriodo(true)
-    try {
-      const { data } = await api.post('/emissions/period', {
-        operationCategory: catPeriodo,
-        physicalQuantity: Number(qtdFisicaPeriodo),
-        digitalQuantity: Number(qtdDigitalPeriodo),
-        period: periodo,
-      })
-      setResultadoPeriodo(data)
-    } catch (e) {
-      setErroPeriodo(e.response?.data?.message || 'Não foi possível conectar ao servidor. Verifique se o backend está em execução.')
-    } finally {
-      setCarregandoPeriodo(false)
-    }
-  }
-
   // --- Calculadora por operação ---
 
   const [tipoProduto, setTipoProduto] = useState('')
@@ -199,6 +134,7 @@ export default function Home() {
         transactionType,
         operationType,
         quantity: Number(quantidade),
+        weightKg: peso !== '' ? Number(peso) : null,
       })
       setResultado(data)
       sessionStorage.setItem('cf_h1', JSON.stringify({ resultado: data, tipoProduto, peso, tipoTransacao }))
@@ -299,174 +235,6 @@ export default function Home() {
 
           {/* COLUNA ESQUERDA */}
           <div className={styles.leftCol}>
-
-            {/* ── Entrada de dados por período (História 1) ── */}
-            <div className={styles.card}>
-              <div className={styles.cardTitle}>Entrada de dados por período</div>
-
-              <div className={styles.sectionLabel}>Parâmetros da operação</div>
-
-              <div className={fieldState('catPeriodo')}>
-                <label htmlFor="cat-periodo">Tipo de operação</label>
-                <select
-                  id="cat-periodo"
-                  value={catPeriodo}
-                  onChange={e => { setCatPeriodo(e.target.value); touch('catPeriodo') }}
-                  onBlur={() => touch('catPeriodo')}
-                >
-                  <option value="">Selecione...</option>
-                  {CATEGORIAS_OPERACAO.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
-                {tocados.catPeriodo && errosCampos.catPeriodo && (
-                  <span className={styles.fieldErroMsg}>{errosCampos.catPeriodo}</span>
-                )}
-                {tocados.catPeriodo && !errosCampos.catPeriodo && (
-                  <span className={styles.fieldOkMsg}>✓ Dados registrados</span>
-                )}
-              </div>
-
-              <div className={styles.row}>
-                <div className={fieldState('qtdFisicaPeriodo')}>
-                  <label htmlFor="qtd-fisica-periodo">Transações físicas</label>
-                  <input
-                    id="qtd-fisica-periodo"
-                    type="number"
-                    min="0"
-                    placeholder="ex: 500"
-                    value={qtdFisicaPeriodo}
-                    onChange={e => { setQtdFisicaPeriodo(e.target.value); touch('qtdFisicaPeriodo') }}
-                    onBlur={() => touch('qtdFisicaPeriodo')}
-                  />
-                  {tocados.qtdFisicaPeriodo && errosCampos.qtdFisicaPeriodo && (
-                    <span className={styles.fieldErroMsg}>{errosCampos.qtdFisicaPeriodo}</span>
-                  )}
-                  {tocados.qtdFisicaPeriodo && !errosCampos.qtdFisicaPeriodo && (
-                    <span className={styles.fieldOkMsg}>✓ Dados registrados</span>
-                  )}
-                </div>
-
-                <div className={fieldState('qtdDigitalPeriodo')}>
-                  <label htmlFor="qtd-digital-periodo">Transações digitais</label>
-                  <input
-                    id="qtd-digital-periodo"
-                    type="number"
-                    min="0"
-                    placeholder="ex: 1200"
-                    value={qtdDigitalPeriodo}
-                    onChange={e => { setQtdDigitalPeriodo(e.target.value); touch('qtdDigitalPeriodo') }}
-                    onBlur={() => touch('qtdDigitalPeriodo')}
-                  />
-                  {tocados.qtdDigitalPeriodo && errosCampos.qtdDigitalPeriodo && (
-                    <span className={styles.fieldErroMsg}>{errosCampos.qtdDigitalPeriodo}</span>
-                  )}
-                  {tocados.qtdDigitalPeriodo && !errosCampos.qtdDigitalPeriodo && (
-                    <span className={styles.fieldOkMsg}>✓ Dados registrados</span>
-                  )}
-                </div>
-              </div>
-
-              <div className={fieldState('periodo')}>
-                <label htmlFor="periodo">Período</label>
-                <input
-                  id="periodo"
-                  type="month"
-                  value={periodo}
-                  onChange={e => { setPeriodo(e.target.value); touch('periodo') }}
-                  onBlur={() => touch('periodo')}
-                />
-                {tocados.periodo && errosCampos.periodo && (
-                  <span className={styles.fieldErroMsg}>{errosCampos.periodo}</span>
-                )}
-                {tocados.periodo && !errosCampos.periodo && (
-                  <span className={styles.fieldOkMsg}>✓ Dados registrados</span>
-                )}
-              </div>
-
-              <button
-                className={styles.btnCalc}
-                onClick={calcularPeriodo}
-                disabled={carregandoPeriodo}
-              >
-                {carregandoPeriodo ? 'Calculando...' : 'Calcular emissões por período'}
-              </button>
-
-              {resultadoPeriodo && (() => {
-                const physKg = resultadoPeriodo.physicalEmissionsKgCO2e
-                const digKg = resultadoPeriodo.digitalEmissionsKgCO2e
-                const totalKg = physKg + digKg
-                const avoidedKg = resultadoPeriodo.avoidedCarbonKgCO2e
-                const physPct = totalKg > 0 ? (physKg / totalKg * 100) : 50
-                const pctSaved = totalKg > 0 ? (avoidedKg / totalKg * 100) : 0
-                return (
-                  <div className={styles.indicadoresCard}>
-                    <div className={styles.indicadoresHeader}>
-                      <div>
-                        <div className={styles.indicadoresHeaderLabel}>Quantidade de carbono emitida no período</div>
-                        <div className={styles.indicadoresHeaderTotal}>{formatarEmissoes(totalKg)}</div>
-                        <div className={styles.indicadoresHeaderOp}>{resultadoPeriodo.operationLabel} · {resultadoPeriodo.physicalQuantity.toLocaleString('pt-BR')} físicas / {resultadoPeriodo.digitalQuantity.toLocaleString('pt-BR')} digitais</div>
-                      </div>
-                      <div className={styles.indicadoresPeriodoBadge}>{formatarPeriodo(resultadoPeriodo.period)}</div>
-                    </div>
-                    <div className={styles.indicadoresChartSection}>
-                      <div className={styles.indicadoresDonutWrapper}>
-                        <div className={styles.indicadoresDonut} style={{ '--phys-pct': `${physPct}%` }} />
-                        <div className={styles.indicadoresDonutCenter}>
-                          <span className={styles.indicadoresDonutValue} style={{ color: avoidedKg >= 0 ? '#4ade80' : '#f87171' }}>
-                            {pctSaved.toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                      <div className={styles.indicadoresChartInfo}>
-                        <div className={styles.indicadoresLegend}>
-                          <div className={styles.indicadoresLegendItem}>
-                            <span className={styles.indicadoresLegendDot} style={{ background: '#162056' }} />
-                            Físico
-                          </div>
-                          <div className={styles.indicadoresLegendItem}>
-                            <span className={styles.indicadoresLegendDot} style={{ background: '#f72717' }} />
-                            Digital
-                          </div>
-                        </div>
-                        <p className={styles.indicadoresDesc}>
-                          {avoidedKg >= 0
-                            ? `Ao usar meios digitais, você evitou ${formatarEmissoes(avoidedKg)} de CO₂ neste período.`
-                            : `As emissões digitais superaram as físicas em ${formatarEmissoes(Math.abs(avoidedKg))} neste período.`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className={styles.indicadoresStats}>
-                      <div className={styles.indicadoresStat}>
-                        <span className={styles.indicadoresStatDot} style={{ background: '#162056' }} />
-                        <div>
-                          <div className={styles.indicadoresStatLabel}>Emissões físicas</div>
-                          <div className={styles.indicadoresStatDesc}>{resultadoPeriodo.physicalDescription}</div>
-                          <div className={styles.indicadoresStatValue}>{formatarEmissoes(physKg)}</div>
-                        </div>
-                      </div>
-                      <div className={styles.indicadoresStat}>
-                        <span className={styles.indicadoresStatDot} style={{ background: '#f72717' }} />
-                        <div>
-                          <div className={styles.indicadoresStatLabel}>Emissões digitais</div>
-                          <div className={styles.indicadoresStatDesc}>{resultadoPeriodo.digitalDescription}</div>
-                          <div className={styles.indicadoresStatValue}>{formatarEmissoes(digKg)}</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className={styles.indicadoresAvoidedRow}>
-                      <div className={styles.indicadoresAvoidedLabel}>Carbono evitado</div>
-                      <div>
-                        <div className={styles.indicadoresAvoidedValue} style={{ color: avoidedKg >= 0 ? '#4ade80' : '#f87171' }}>
-                          {avoidedKg >= 0 ? '' : '−'}{formatarEmissoes(Math.abs(avoidedKg))}
-                        </div>
-                        <div className={styles.indicadoresAvoidedNote}>{avoidedKg.toFixed(8)} kg CO₂e</div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {erroPeriodo && <div className={styles.errorArea}>{erroPeriodo}</div>}
-            </div>
 
             <button
               className={styles.btnAdicionar}

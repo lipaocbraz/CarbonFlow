@@ -42,7 +42,10 @@ public class EmissionService {
             }
         }
 
-        double totalEmissions = factor * request.getQuantity();
+        double weight = (request.getWeightKg() != null && request.getWeightKg() > 0)
+                ? request.getWeightKg()
+                : 1.0;
+        double totalEmissions = factor * request.getQuantity() * weight;
 
         return new EmissionResult(
                 operationType,
